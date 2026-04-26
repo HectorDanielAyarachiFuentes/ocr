@@ -259,3 +259,18 @@ function replaySpeech() {
         speakText(text);
     }
 }
+
+/* ── Alternar modo expandido ── */
+function toggleExpand() {
+    document.body.classList.toggle('expanded-mode');
+    const btn = document.getElementById('btn-expand');
+    if (document.body.classList.contains('expanded-mode')) {
+        btn.textContent = '⛶'; // Puedes cambiar el icono si deseas
+        btn.title = 'Contraer área';
+    } else {
+        btn.textContent = '⛶';
+        btn.title = 'Ampliar área';
+    }
+    // Forzar redimensionado del canvas
+    if (typeof resizeCanvas === 'function') resizeCanvas();
+}

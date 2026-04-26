@@ -349,3 +349,18 @@ function replaySpeech() {
 
 /* ── Inicio ── */
 loadLetter();
+
+/* ── Alternar modo expandido ── */
+function toggleExpand() {
+    document.body.classList.toggle('expanded-mode');
+    const btn = document.getElementById('btn-expand');
+    if (document.body.classList.contains('expanded-mode')) {
+        btn.textContent = '⛶'; 
+        btn.title = 'Contraer área';
+    } else {
+        btn.textContent = '⛶';
+        btn.title = 'Ampliar área';
+    }
+    // Forzar redimensionado de los canvas
+    if (typeof resizeCanvases === 'function') resizeCanvases();
+}
