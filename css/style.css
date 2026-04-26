@@ -29,18 +29,61 @@ body {
 header {
     text-align: center;
     flex-shrink: 0;
+    width: 100%;
+    max-width: 640px;
+    padding: 10px 0;
+}
+.header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
 }
 h1 {
-    font-size: clamp(1.3rem, 5vw, 1.9rem);
+    font-size: clamp(1.4rem, 6vw, 2.1rem);
     font-weight: 900;
     color: #ff6b35;
-    line-height: 1.1;
+    line-height: 1.2;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.05);
 }
 .subtitle {
-    font-size: clamp(0.78rem, 3vw, 0.95rem);
+    font-size: clamp(0.85rem, 3.5vw, 1.05rem);
     color: #888;
     font-weight: 700;
-    margin-top: 2px;
+    margin-bottom: 8px;
+}
+
+.learn-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #4caf50;
+    color: white;
+    text-decoration: none;
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    box-shadow: 0 4px 0 #388e3c;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.learn-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 #388e3c;
+}
+
+.learn-link:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #388e3c;
+}
+
+.learn-link .arrow {
+    transition: transform 0.2s;
+}
+
+.learn-link:hover .arrow {
+    transform: translateX(4px);
 }
 
 /* ── Área de dibujo ── */
@@ -153,39 +196,54 @@ canvas {
     to   { transform: scale(1);   opacity: 1; }
 }
 
-/* ── Botón Borrar ── */
+/* ── Botones de Control ── */
 .controls {
     flex-shrink: 0;
     width: 100%;
     max-width: 640px;
     display: flex;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
+    padding: 4px 0;
 }
 button {
     flex: 1;
-    max-width: 220px;
-    padding: clamp(10px, 2.5vh, 16px) 12px;
+    max-width: 200px;
+    padding: clamp(12px, 3vh, 18px) 12px;
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(1rem, 4vw, 1.25rem);
+    font-size: clamp(1rem, 4vw, 1.2rem);
     font-weight: 900;
     border: none;
-    border-radius: 14px;
+    border-radius: 18px;
     cursor: pointer;
     color: #fff;
-    transition: transform 0.1s, box-shadow 0.1s;
+    transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 #btn-clear {
-    background: #f44336;
-    box-shadow: 0 5px 0 #b71c1c;
+    background: #ff5252;
+    box-shadow: 0 6px 0 #d32f2f;
+}
+#btn-clear:hover {
+    background: #ff6e6e;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #d32f2f;
 }
 #btn-speak {
-    background: #4285f4;
-    box-shadow: 0 5px 0 #1a73e8;
+    background: #448aff;
+    box-shadow: 0 6px 0 #2979ff;
+}
+#btn-speak:hover {
+    background: #64a1ff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 0 #2979ff;
 }
 button:active {
-    transform: scale(0.96) translateY(3px);
-    box-shadow: none;
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.2) !important;
 }
 
 /* ── Barra de estado ── */

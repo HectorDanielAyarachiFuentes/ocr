@@ -26,70 +26,128 @@ header {
     width: 100%;
     max-width: 640px;
     flex-shrink: 0;
+    padding: 10px 0;
+    position: relative;
 }
 .back-btn {
-    font-size: 0.85rem;
-    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 800;
     color: #ff6b35;
     text-decoration: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: rgba(255,107,53,0.1);
+    padding: 8px 14px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 3px 0 rgba(255,107,53,0.2);
+    transition: all 0.15s;
+    border: 2px solid rgba(255,107,53,0.1);
 }
+.back-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 rgba(255,107,53,0.2);
+}
+.back-btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 rgba(255,107,53,0.2);
+}
+.back-btn .icon {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
 h1 {
-    font-size: clamp(1rem, 4vw, 1.4rem);
+    font-size: clamp(1.1rem, 5vw, 1.6rem);
     font-weight: 900;
     color: #ff6b35;
+    white-space: nowrap;
+    text-shadow: 1px 1px 0 rgba(0,0,0,0.02);
 }
+
 .case-toggle {
     display: flex;
-    gap: 4px;
+    background: rgba(255,107,53,0.08);
+    padding: 4px;
+    border-radius: 14px;
+    gap: 2px;
 }
 .case-toggle button {
-    padding: 6px 12px;
+    padding: 6px 14px;
     font-family: 'Nunito', sans-serif;
     font-weight: 900;
-    font-size: 0.9rem;
-    border: 2px solid #ff6b35;
-    border-radius: 8px;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 10px;
     cursor: pointer;
     background: transparent;
     color: #ff6b35;
-    transition: all 0.15s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .case-toggle button.active {
     background: #ff6b35;
     color: #fff;
+    box-shadow: 0 3px 0 #b74c22;
 }
 
 /* ── Letter nav ── */
 .letter-nav {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
     flex-shrink: 0;
+    margin: 4px 0;
 }
 .letter-nav button {
-    width: 44px; height: 44px;
-    border-radius: 50%;
+    width: 48px; height: 48px;
+    border-radius: 16px;
     border: none;
-    background: #ff6b35;
-    color: #fff;
-    font-size: 1.6rem;
+    background: #fff;
+    color: #ff6b35;
+    font-size: 1.8rem;
     font-weight: 900;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 3px 0 #b74c22;
-    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 0 4px 0 rgba(255,107,53,0.15);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid rgba(255,107,53,0.1);
 }
-.letter-nav button:active { transform: translateY(3px); box-shadow: none; }
+.letter-nav button:hover {
+    transform: translateY(-2px);
+    background: #ff6b35;
+    color: #fff;
+    box-shadow: 0 6px 0 #b74c22;
+}
+.letter-nav button:active { 
+    transform: translateY(2px); 
+    box-shadow: 0 1px 0 #b74c22; 
+}
+
 .current-letter {
-    font-size: clamp(2.5rem, 10vw, 4rem);
+    font-size: clamp(3.5rem, 12vw, 5.5rem);
     font-weight: 900;
     color: #ff6b35;
-    min-width: 80px;
+    min-width: 100px;
+    height: 100px;
     text-align: center;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 24px;
+    box-shadow: 
+        inset 0 -8px 0 rgba(255,107,53,0.05),
+        0 10px 25px rgba(0,0,0,0.05);
+    border: 3px solid #fff;
+    outline: 2px solid rgba(255,107,53,0.1);
 }
 
 /* ── Canvas area ── */
