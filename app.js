@@ -216,6 +216,116 @@ function invertOff(src) {
 }
 
 /* ============================================================
+   SHAPE MATCHING (Vectores)
+   ============================================================ */
+function drawLetterTo100x100(letterStrokes) {
+    var c = document.createElement('canvas');
+    c.width = 100; c.height = 100;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(0,0,100,100);
+    ctx.lineWidth = 14;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#000';
+    for (var i = 0; i < letterStrokes.length; i++) {
+        var s = letterStrokes[i];
+        if (!s || s.length === 0) continue;
+        ctx.beginPath();
+        ctx.moveTo(s[0][0], s[0][1]);
+        for (var j = 1; j < s.length; j++) {
+            ctx.lineTo(s[j][0], s[j][1]);
+        }
+        ctx.stroke();
+    }
+    return c;
+}
+
+function normalizeTo100x100(srcCanvas) {
+    var w = srcCanvas.width, h = srcCanvas.height;
+    var ctx = srcCanvas.getContext('2d');
+    var data = ctx.getImageData(0,0,w,h).data;
+    var minX = w, maxX = 0, minY = h, maxY = 0;
+    var hasPixels = false;
+    for(var y=0; y<h; y++){
+        for(var x=0; x<w; x++){
+            var i = (y*w + x)*4;
+            if(data[i] < 128) {
+                if(x < minX) minX = x; if(x > maxX) maxX = x;
+                if(y < minY) minY = y; if(y > maxY) maxY = y;
+                hasPixels = true;
+            }
+        }
+    }
+    var dst = document.createElement('canvas');
+    dst.width = 100; dst.height = 100;
+    var dctx = dst.getContext('2d');
+    dctx.fillStyle = '#fff';
+    dctx.fillRect(0,0,100,100);
+    
+    if(!hasPixels) return dst;
+    
+    var bw = maxX - minX + 1;
+    var bh = maxY - minY + 1;
+    var scale = Math.min(80 / bw, 80 / bh);
+    var sw = bw * scale;
+    var sh = bh * scale;
+    var dx = 50 - sw / 2;
+    var dy = 50 - sh / 2;
+    
+    dctx.drawImage(srcCanvas, minX, minY, bw, bh, dx, dy, sw, sh);
+    
+    var dstData = dctx.getImageData(0,0,100,100);
+    var px = dstData.data;
+    for(var j=0; j<px.length; j+=4) {
+        var v = (px[j]+px[j+1]+px[j+2]) < 384 ? 0 : 255;
+        px[j]=px[j+1]=px[j+2] = v;
+        px[j+3] = 255;
+    }
+    dctx.putImageData(dstData, 0,0);
+    return dst;
+}
+
+var TEMPLATES = {};
+function initTemplates() {
+    for (var k in LETTERS_UPPER) {
+        var raw = drawLetterTo100x100(LETTERS_UPPER[k]);
+        TEMPLATES[k] = normalizeTo100x100(raw).getContext('2d').getImageData(0,0,100,100).data;
+    }
+    for (var k in LETTERS_LOWER) {
+        var raw = drawLetterTo100x100(LETTERS_LOWER[k]);
+        TEMPLATES[k] = normalizeTo100x100(raw).getContext('2d').getImageData(0,0,100,100).data;
+    }
+}
+setTimeout(initTemplates, 500); // Async to not block initial load
+
+function matchShape(base) {
+    var normCanvas = normalizeTo100x100(base);
+    var target = normCanvas.getContext('2d').getImageData(0,0,100,100).data;
+
+    var bestLetter = '';
+    var bestScore = -1;
+
+    for (var char in TEMPLATES) {
+        var tData = TEMPLATES[char];
+        var intersection = 0, union = 0;
+        for (var i = 0; i < target.length; i += 4) {
+            var isTargetBlack = target[i] < 128;
+            var isTemplateBlack = tData[i] < 128;
+            if (isTargetBlack && isTemplateBlack) intersection++;
+            if (isTargetBlack || isTemplateBlack) union++;
+        }
+        var iou = union === 0 ? 0 : intersection / union;
+        if (iou > bestScore) {
+            bestScore = iou;
+            bestLetter = char;
+        }
+    }
+    var conf = Math.min(100, bestScore * 200); 
+    return { text: bestLetter, confidence: conf, iou: bestScore };
+}
+
+/* ============================================================
    RECONOCIMIENTO OCR (Tesseract.js)
    ============================================================ */
 var WHITELIST = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzáéíóúÁÉÍÓÚñÑ';
@@ -283,20 +393,31 @@ function recognizeDrawing() {
     }
     tasks.push(tryRecognize(variants[0], 13)); // PSM 13: raw line
 
+    var shapeResult = matchShape(base);
+
     Promise.all(tasks).then(function (results) {
         busy = false;
-        var best = { text: '', confidence: -1 };
+        var bestTess = { text: '', confidence: -1 };
 
         for (var i = 0; i < results.length; i++) {
             var r = results[i];
-            if (r.text && r.confidence > best.confidence) best = r;
+            if (r.text && r.confidence > bestTess.confidence) bestTess = r;
         }
-        // Fallback: último resultado (PSM 13) si ninguno tuvo confianza
-        if (!best.text && results[results.length - 1].text)
-            best = results[results.length - 1];
+        if (!bestTess.text && results[results.length - 1].text)
+            bestTess = results[results.length - 1];
 
-        if (best.text) {
-            output.textContent = best.text;
+        var finalBest;
+        // Si el template encaja muy bien (IoU > 0.35), le ganará a Tesseract porque es específico de la geometría
+        if (shapeResult.iou > 0.35) {
+            finalBest = shapeResult;
+        } else if (bestTess.confidence > 60) {
+            finalBest = bestTess;
+        } else {
+            finalBest = (shapeResult.confidence > bestTess.confidence) ? shapeResult : bestTess;
+        }
+
+        if (finalBest && finalBest.text) {
+            output.textContent = finalBest.text;
             output.classList.remove('empty');
             setStatus('¡Lo adiviné! 🎉', 'success');
         } else {
