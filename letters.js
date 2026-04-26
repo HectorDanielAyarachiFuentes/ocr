@@ -90,3 +90,12 @@ var LETTERS_LOWER = {
     'y': [seg(20,42,50,75), seg(80,42,35,100)],
     'z': [seg(18,42,82,42), seg(82,42,18,90), seg(18,90,82,90)]
 };
+
+var VARIANTS = {
+    'y_2': [join(seg(20,42,20,70), arc(50,70, 30,20, 180,0, 12)), seg(80,42,80,100)], // y como u con palo recto
+    'y_3': [join(seg(20,42,20,70), arc(50,70, 30,20, 180,0, 12)), join(seg(80,42,80,95), arc(65,95, 15,15, 0,180, 10))], // y cursiva con gancho
+    'g_2': [arc(50,62, 22,22, 270,630, 22), seg(72,40,72,100)], // g con palo recto
+    'I_2': [seg(50,5,50,95), seg(30,5,70,5), seg(30,95,70,95)], // I mayúscula con barras
+    'J_2': [seg(65,5,65,78), seg(40,5,90,5)] // J mayúscula con barra arriba y sin gancho? no, mejor J con barra arriba:
+};
+VARIANTS['J_2'] = [join(seg(65,5,65,78), arc(40,78, 25,17, 0,180, 12)), seg(40,5,90,5)];

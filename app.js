@@ -15,6 +15,10 @@ var hasDrawn  = false;
 var autoTimer = null;
 var busy      = false;
 
+/* ── Rastreo de trazos para Google API ── */
+var strokes = [];
+var currentStroke = { x: [], y: [], t: [] };
+
 /* ── Ajustar canvas al tamaño real del wrapper ── */
 function resizeCanvas() {
     var w = wrapper.clientWidth;
@@ -58,11 +62,19 @@ function onStart(e) {
     var p = getPos(e);
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
+    
+    currentStroke = { x: [], y: [], t: [] };
+    currentStroke.x.push(p.x);
+    currentStroke.y.push(p.y);
+    currentStroke.t.push(Date.now());
 }
 function onEnd() {
     if (!drawing) return;
     drawing = false;
     ctx.beginPath();
+    
+    strokes.push([currentStroke.x, currentStroke.y, currentStroke.t]);
+    
     if (hasDrawn) {
         setProgress(0);
         scheduleRecognize();
@@ -75,6 +87,10 @@ function onMove(e) {
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
+    
+    currentStroke.x.push(p.x);
+    currentStroke.y.push(p.y);
+    currentStroke.t.push(Date.now());
 }
 
 /* Mouse */
@@ -114,6 +130,7 @@ function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     hasDrawn = false;
     busy     = false;
+    strokes  = [];
     output.textContent = '—';
     output.classList.add('empty');
     hint.classList.remove('hidden');
@@ -341,6 +358,13 @@ function initTemplates() {
         dt.aspect = normObj.aspect;
         TEMPLATES[k] = dt;
     }
+    for (var k in VARIANTS) {
+        var raw = drawLetterTo100x100(VARIANTS[k]);
+        var normObj = normalizeTo100x100(raw);
+        var dt = computeDistanceTransform(normObj.canvas.getContext('2d').getImageData(0,0,100,100));
+        dt.aspect = normObj.aspect;
+        TEMPLATES[k] = dt;
+    }
 }
 setTimeout(initTemplates, 500); // Async to not block initial load
 
@@ -380,11 +404,15 @@ function matchShape(base) {
             aspectPenalty = (aspectDiff - 0.7) * 20;
         }
         totalDist += aspectPenalty;
-        scores[char] = totalDist;
+        
+        var baseChar = char.split('_')[0];
+        if (scores[baseChar] === undefined || totalDist < scores[baseChar]) {
+            scores[baseChar] = totalDist;
+        }
 
         if (totalDist < bestDistance) {
             bestDistance = totalDist;
-            bestLetter = char;
+            bestLetter = baseChar;
         }
     }
     var conf = Math.max(0, 100 - bestDistance * 5);
@@ -423,16 +451,54 @@ function tryRecognize(dataUrl, psm) {
     });
 }
 
+/* ============================================================
+   GOOGLE HANDWRITING API (Motor Principal Híbrido)
+   ============================================================ */
+async function askGoogleAPI(strokesData, w, h) {
+    const url = "https://www.google.com.tw/inputtools/request?ime=handwriting&app=autofill&hl=es";
+    const body = {
+        options: "enable_pre_space",
+        requests: [{
+            writing_guide: { "width": w, "height": h },
+            ink: strokesData,
+            language: "es"
+        }]
+    };
+    
+    // Timeout de 2 segundos para fallback offline
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(body),
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        const data = await response.json();
+        if (data[0] === "SUCCESS" && data[1] && data[1][0] && data[1][0][1]) {
+            return data[1][0][1][0]; // Best candidate
+        }
+    } catch(err) {
+        clearTimeout(timeoutId);
+        console.warn("Google API failed or timeout, using offline fallback.", err);
+    }
+    return null;
+}
+
 /*
-  Reconocimiento principal:
-  - 4 variantes de imagen × 2 PSMs + PSM 13 = 9 tareas en paralelo
-  - Se elige el resultado con mayor confianza de Tesseract
+/*
+  Reconocimiento principal HÍBRIDO:
+  1. Intenta Google Handwriting API.
+  2. Si falla o no hay internet, usa Tesseract + Geometría.
 */
-function recognizeDrawing() {
+async function recognizeDrawing() {
     if (!hasDrawn || busy) return;
     busy = true;
 
-    statusBar.innerHTML = '<span class="spinner"></span> La IA está mirando…';
+    statusBar.innerHTML = '<span class="spinner"></span> Consultando IA de Google...';
     statusBar.className = 'status-bar thinking';
     output.classList.add('empty');
 
@@ -442,6 +508,21 @@ function recognizeDrawing() {
         setStatus('Dibuja algo primero.', 'error');
         return;
     }
+
+    // 1. Motor Primario: Google API
+    if (strokes.length > 0) {
+        var googleResult = await askGoogleAPI(strokes, canvas.width, canvas.height);
+        if (googleResult) {
+            busy = false;
+            output.textContent = googleResult;
+            output.classList.remove('empty');
+            setStatus('¡Lo adiviné! 🎉 — Motor: Google Input Tools', 'success');
+            return;
+        }
+    }
+
+    // 2. Motor de Respaldo: Offline Local (Geometría + Tesseract)
+    statusBar.innerHTML = '<span class="spinner"></span> Sin conexión... usando IA local...';
 
     var variants = [
         base.toDataURL('image/png'),
