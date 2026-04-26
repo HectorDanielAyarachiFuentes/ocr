@@ -283,7 +283,7 @@ function normalizeTo100x100(srcCanvas) {
     var dy = 50 - sh / 2;
     
     dctx.drawImage(srcCanvas, minX, minY, bw, bh, dx, dy, sw, sh);
-    return dst;
+    return { canvas: dst, aspect: aspect };
 }
 
 function computeDistanceTransform(imgData) {
@@ -329,25 +329,31 @@ var TEMPLATES = {};
 function initTemplates() {
     for (var k in LETTERS_UPPER) {
         var raw = drawLetterTo100x100(LETTERS_UPPER[k]);
-        var norm = normalizeTo100x100(raw);
-        TEMPLATES[k] = computeDistanceTransform(norm.getContext('2d').getImageData(0,0,100,100));
+        var normObj = normalizeTo100x100(raw);
+        var dt = computeDistanceTransform(normObj.canvas.getContext('2d').getImageData(0,0,100,100));
+        dt.aspect = normObj.aspect;
+        TEMPLATES[k] = dt;
     }
     for (var k in LETTERS_LOWER) {
         var raw = drawLetterTo100x100(LETTERS_LOWER[k]);
-        var norm = normalizeTo100x100(raw);
-        TEMPLATES[k] = computeDistanceTransform(norm.getContext('2d').getImageData(0,0,100,100));
+        var normObj = normalizeTo100x100(raw);
+        var dt = computeDistanceTransform(normObj.canvas.getContext('2d').getImageData(0,0,100,100));
+        dt.aspect = normObj.aspect;
+        TEMPLATES[k] = dt;
     }
 }
 setTimeout(initTemplates, 500); // Async to not block initial load
 
 function matchShape(base) {
-    var normCanvas = normalizeTo100x100(base);
-    var targetDT = computeDistanceTransform(normCanvas.getContext('2d').getImageData(0,0,100,100));
+    var normObj = normalizeTo100x100(base);
+    var targetDT = computeDistanceTransform(normObj.canvas.getContext('2d').getImageData(0,0,100,100));
+    var targetAspect = normObj.aspect;
 
-    if (targetDT.pixels.length === 0) return { text: '', confidence: 0, distance: 999 };
+    if (targetDT.pixels.length === 0) return { text: '', confidence: 0, distance: 999, scores: {} };
 
     var bestLetter = '';
     var bestDistance = 9999;
+    var scores = {};
 
     for (var char in TEMPLATES) {
         var tmpl = TEMPLATES[char];
@@ -366,13 +372,23 @@ function matchShape(base) {
         var avgU2T = sumU2T / targetDT.pixels.length;
         
         var totalDist = avgT2U + avgU2T;
+        
+        // Penalización por Ratio de Aspecto (Cuadrícula Invisible)
+        var aspectDiff = Math.abs(Math.log(targetAspect) - Math.log(tmpl.aspect));
+        var aspectPenalty = 0;
+        if (aspectDiff > 0.7) {
+            aspectPenalty = (aspectDiff - 0.7) * 20;
+        }
+        totalDist += aspectPenalty;
+        scores[char] = totalDist;
+
         if (totalDist < bestDistance) {
             bestDistance = totalDist;
             bestLetter = char;
         }
     }
     var conf = Math.max(0, 100 - bestDistance * 5);
-    return { text: bestLetter, confidence: conf, distance: bestDistance };
+    return { text: bestLetter, confidence: conf, distance: bestDistance, scores: scores };
 }
 
 /* ============================================================
@@ -457,19 +473,36 @@ function recognizeDrawing() {
             bestTess = results[results.length - 1];
 
         var finalBest;
-        // Distancia Chamfer: < 10 es un match casi perfecto
-        if (shapeResult.distance < 12) {
+        var tessText = bestTess.text;
+        
+        // Filtro Lógico: Veto a Tesseract
+        var isTesseractVetoed = false;
+        if (tessText && shapeResult.scores) {
+            var shapeScoreForTess = shapeResult.scores[tessText];
+            if (shapeScoreForTess === undefined) {
+                 var alt = tessText === tessText.toLowerCase() ? tessText.toUpperCase() : tessText.toLowerCase();
+                 shapeScoreForTess = shapeResult.scores[alt];
+            }
+            if (shapeScoreForTess > 18) {
+                 isTesseractVetoed = true;
+            }
+        }
+
+        // Decisión final usando el veto
+        if (shapeResult.distance < 15) {
             finalBest = shapeResult;
-        } else if (bestTess.confidence > 65) {
+        } else if (!isTesseractVetoed && bestTess.confidence > 65) {
             finalBest = bestTess;
         } else {
-            finalBest = (shapeResult.confidence > bestTess.confidence) ? shapeResult : bestTess;
+            finalBest = shapeResult; // Si Tesseract está vetado, confiamos en la geometría
         }
 
         if (finalBest && finalBest.text) {
             output.textContent = finalBest.text;
             output.classList.remove('empty');
-            setStatus('¡Lo adiviné! 🎉', 'success');
+            var tStatus = isTesseractVetoed ? 'VETADO' : Math.round(bestTess.confidence);
+            var debugInfo = 'Geometría: ' + shapeResult.text + ' (' + Math.round(shapeResult.distance) + ') | OCR: ' + bestTess.text + ' (' + tStatus + ')';
+            setStatus('¡Lo adiviné! 🎉 — ' + debugInfo, 'success');
         } else {
             setStatus('No pude leerlo. ¡Escribe más grande!', 'error');
         }
