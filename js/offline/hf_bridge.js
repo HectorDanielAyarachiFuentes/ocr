@@ -21,8 +21,18 @@ window.HF_OCR = {
         }
 
         try {
-            // Cargar pipeline. La primera vez descargará el modelo.
-            this.recognizer = await pipeline('image-to-text', 'Xenova/trocr-small-handwritten');
+            // Cargar pipeline con callback de progreso para ver la descarga
+            this.recognizer = await pipeline('image-to-text', 'Xenova/trocr-small-handwritten', {
+                progress_callback: (info) => {
+                    if (statusBar && info.status === 'progress') {
+                        // info.progress es el porcentaje (0 a 100)
+                        let percent = Math.round(info.progress);
+                        statusBar.innerHTML = '<span class="spinner"></span> Descargando IA (' + percent + '%)... Puede tardar un poco la primera vez.';
+                    } else if (statusBar && info.status === 'done') {
+                        statusBar.innerHTML = '<span class="spinner"></span> Cargando en memoria...';
+                    }
+                }
+            });
             this.isReady = true;
             console.log("HuggingFace TrOCR cargado y listo (offline caching activado).");
             
