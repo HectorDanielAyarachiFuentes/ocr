@@ -1,0 +1,214 @@
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: 'Nunito', 'Segoe UI', sans-serif;
+    background: #fff9f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    height: 100dvh;
+    padding: 8px 12px;
+    gap: 6px;
+}
+
+/* ── Header ── */
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 640px;
+    flex-shrink: 0;
+}
+.back-btn {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ff6b35;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(255,107,53,0.1);
+}
+h1 {
+    font-size: clamp(1rem, 4vw, 1.4rem);
+    font-weight: 900;
+    color: #ff6b35;
+}
+.case-toggle {
+    display: flex;
+    gap: 4px;
+}
+.case-toggle button {
+    padding: 6px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 900;
+    font-size: 0.9rem;
+    border: 2px solid #ff6b35;
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent;
+    color: #ff6b35;
+    transition: all 0.15s;
+}
+.case-toggle button.active {
+    background: #ff6b35;
+    color: #fff;
+}
+
+/* ── Letter nav ── */
+.letter-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+.letter-nav button {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #ff6b35;
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 0 #b74c22;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.letter-nav button:active { transform: translateY(3px); box-shadow: none; }
+.current-letter {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+    font-weight: 900;
+    color: #ff6b35;
+    min-width: 80px;
+    text-align: center;
+    line-height: 1;
+}
+
+/* ── Canvas area ── */
+.canvas-area {
+    position: relative;
+    flex: 1 1 0;
+    width: 100%;
+    max-width: 640px;
+    min-height: 0;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 4px solid #ff6b35;
+    background: #fff;
+    box-shadow: 0 4px 0 #ff6b35, 0 6px 20px rgba(0,0,0,0.1);
+}
+/* Líneas de cuaderno */
+.canvas-area::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+        transparent 0px, transparent 59px,
+        #e8f4fd 59px, #e8f4fd 61px
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+/* Línea base (central) */
+.canvas-area::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    height: 2px;
+    background: rgba(255,107,53,0.2);
+    z-index: 0;
+}
+.canvas-area canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+#guideCanvas  { z-index: 1; }
+#demoCanvas   { z-index: 2; }
+#traceCanvas  { z-index: 3; touch-action: none; cursor: crosshair; }
+
+/* ── Instruction ── */
+.instruction {
+    flex-shrink: 0;
+    font-size: clamp(0.85rem, 3vw, 1rem);
+    font-weight: 700;
+    color: #888;
+    text-align: center;
+    height: 1.4em;
+}
+.instruction.success { color: #4caf50; }
+.instruction.thinking { color: #ff6b35; }
+
+/* ── Controls ── */
+.controls {
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 640px;
+    justify-content: center;
+}
+.controls button {
+    flex: 1;
+    max-width: 180px;
+    padding: clamp(8px, 2vh, 14px) 8px;
+    font-family: 'Nunito', sans-serif;
+    font-size: clamp(0.85rem, 3vw, 1rem);
+    font-weight: 900;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    color: #fff;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+.controls button:active { transform: scale(0.96) translateY(2px); box-shadow: none !important; }
+
+#btn-demo  { background: #2196f3; box-shadow: 0 4px 0 #1565c0; }
+#btn-clear { background: #f44336; box-shadow: 0 4px 0 #b71c1c; }
+#btn-next2 { background: #4caf50; box-shadow: 0 4px 0 #2e7d32; }
+
+/* ── Stroke progress dots ── */
+.stroke-progress {
+    flex-shrink: 0;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    height: 14px;
+}
+.stroke-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: #ddd;
+    transition: background 0.3s;
+}
+.stroke-dot.done    { background: #4caf50; }
+.stroke-dot.current { background: #ff6b35; transform: scale(1.2); }
+
+/* ── Celebration overlay ── */
+.celebrate {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(4rem, 15vw, 8rem);
+    z-index: 100;
+    pointer-events: none;
+    animation: celebFade 1.5s ease-out forwards;
+}
+@keyframes celebFade {
+    0%   { opacity: 1; transform: scale(0.5); }
+    50%  { opacity: 1; transform: scale(1.2); }
+    100% { opacity: 0; transform: scale(1.5); }
+}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aprende a Escribir</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./learn.css">
+</head>
+<body>
+
+    <header>
+        <a href="./index.html" class="back-btn">← Volver</a>
+        <h1>✏️ Aprende a Escribir</h1>
+        <div class="case-toggle">
+            <button id="btn-upper" class="active" onclick="setCase('upper')">ABC</button>
+            <button id="btn-lower" onclick="setCase('lower')">abc</button>
+        </div>
+    </header>
+
+    <div class="letter-nav">
+        <button id="btn-prev" onclick="prevLetter()">‹</button>
+        <div class="current-letter" id="currentLetter">A</div>
+        <button id="btn-next" onclick="nextLetter()">›</button>
+    </div>
+
+    <div class="canvas-area" id="canvasArea">
+        <!-- capa 1: guía con la letra en punteado -->
+        <canvas id="guideCanvas"></canvas>
+        <!-- capa 2: animación de demostración -->
+        <canvas id="demoCanvas"></canvas>
+        <!-- capa 3: dibujo del niño -->
+        <canvas id="traceCanvas"></canvas>
+    </div>
+
+    <div class="instruction" id="instruction">Primero mira cómo se hace</div>
+
+    <div class="controls">
+        <button id="btn-demo"  onclick="playDemo()">▶ Ver cómo</button>
+        <button id="btn-clear" onclick="clearTrace()">🗑 Borrar</button>
+        <button id="btn-next2" onclick="nextLetter()">Siguiente →</button>
+    </div>
+
+    <div class="stroke-progress" id="strokeProgress"></div>
+
+    <script src="./learn.js"></script>
+</body>
+</html>
