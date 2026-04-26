@@ -160,9 +160,10 @@ canvas {
     max-width: 640px;
     display: flex;
     justify-content: center;
+    gap: 12px;
 }
 button {
-    width: 100%;
+    flex: 1;
     max-width: 220px;
     padding: clamp(10px, 2.5vh, 16px) 12px;
     font-family: 'Nunito', sans-serif;
@@ -172,9 +173,15 @@ button {
     border-radius: 14px;
     cursor: pointer;
     color: #fff;
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+#btn-clear {
     background: #f44336;
     box-shadow: 0 5px 0 #b71c1c;
-    transition: transform 0.1s, box-shadow 0.1s;
+}
+#btn-speak {
+    background: #4285f4;
+    box-shadow: 0 5px 0 #1a73e8;
 }
 button:active {
     transform: scale(0.96) translateY(3px);

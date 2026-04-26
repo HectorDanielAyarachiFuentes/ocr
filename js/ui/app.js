@@ -38,8 +38,8 @@ new ResizeObserver(resizeCanvas).observe(wrapper);
 
 /* ── Helpers de UI ── */
 function setStatus(msg, mode) {
-    statusBar.textContent = msg;
-    statusBar.className   = 'status-bar ' + (mode || '');
+    statusBar.innerHTML = msg;
+    statusBar.className = 'status-bar ' + (mode || '');
 }
 function setProgress(pct) {
     progressBar.style.width = pct + '%';
@@ -165,7 +165,8 @@ async function recognizeDrawing() {
             busy = false;
             output.textContent = googleResult;
             output.classList.remove('empty');
-            setStatus('¡Lo adiviné! 🎉 — Motor: Google Input Tools', 'success');
+            setStatus('¡Lo adiviné! 🎉 — Escucha y voz completada.', 'success');
+            speakText(googleResult);
             return;
         }
     }
@@ -232,9 +233,29 @@ async function recognizeDrawing() {
             output.classList.remove('empty');
             var tStatus = isTesseractVetoed ? 'VETADO' : Math.round(bestTess.confidence);
             var debugInfo = 'Geometría: ' + shapeResult.text + ' (' + Math.round(shapeResult.distance) + ') | OCR: ' + bestTess.text + ' (' + tStatus + ')';
-            setStatus('¡Lo adiviné! 🎉 — ' + debugInfo, 'success');
+            setStatus('¡Lo adiviné! 🎉 — Escucha y voz completada.', 'success');
+            
+            // Motor de Voz
+            speakText(finalBest.text);
         } else {
             setStatus('No pude leerlo. ¡Escribe más grande!', 'error');
         }
     });
+}
+
+/* ── Motor de Voz (Text-to-Speech) ── */
+function speakText(text) {
+    if (!text) return;
+    const mensaje = new SpeechSynthesisUtterance(text);
+    mensaje.lang = 'es-ES';
+    mensaje.rate = 1;
+    window.speechSynthesis.speak(mensaje);
+}
+
+/* ── Repetir audio del resultado actual ── */
+function replaySpeech() {
+    const text = output.textContent;
+    if (text && text !== '—') {
+        speakText(text);
+    }
 }

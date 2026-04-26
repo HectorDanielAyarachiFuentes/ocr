@@ -175,6 +175,7 @@ h1 {
 .controls button:active { transform: scale(0.96) translateY(2px); box-shadow: none !important; }
 
 #btn-demo  { background: #2196f3; box-shadow: 0 4px 0 #1565c0; }
+#btn-speak { background: #4285f4; box-shadow: 0 4px 0 #1a73e8; }
 #btn-clear { background: #f44336; box-shadow: 0 4px 0 #b71c1c; }
 #btn-next2 { background: #4caf50; box-shadow: 0 4px 0 #2e7d32; }
 

@@ -304,8 +304,11 @@ function loadLetter() {
     instrEl.textContent  = 'Primero mira cómo se hace';
     instrEl.className    = 'instruction';
     drawGuide();
-    // Auto-play demo cuando cambia la letra
-    setTimeout(playDemo, 400);
+    // Auto-play demo y voz cuando cambia la letra
+    setTimeout(function() {
+        speakText(char);
+        playDemo();
+    }, 400);
 }
 
 function nextLetter() {
@@ -325,6 +328,23 @@ function setCase(c) {
     document.getElementById('btn-upper').className = c === 'upper' ? 'active' : '';
     document.getElementById('btn-lower').className = c === 'lower' ? 'active' : '';
     loadLetter();
+}
+
+/* ── Motor de Voz (Text-to-Speech) ── */
+function speakText(text) {
+    if (!text) return;
+    const mensaje = new SpeechSynthesisUtterance(text);
+    mensaje.lang = 'es-ES';
+    mensaje.rate = 1;
+    window.speechSynthesis.speak(mensaje);
+}
+
+/* ── Repetir audio de la letra actual ── */
+function replaySpeech() {
+    const char = currentLetterChar();
+    if (char) {
+        speakText(char);
+    }
 }
 
 /* ── Inicio ── */
