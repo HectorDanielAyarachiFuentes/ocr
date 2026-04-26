@@ -224,7 +224,7 @@ function drawLetterTo100x100(letterStrokes) {
     var ctx = c.getContext('2d');
     ctx.fillStyle = '#fff';
     ctx.fillRect(0,0,100,100);
-    ctx.lineWidth = 14;
+    ctx.lineWidth = 4;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.strokeStyle = '#000';
@@ -267,9 +267,18 @@ function normalizeTo100x100(srcCanvas) {
     
     var bw = maxX - minX + 1;
     var bh = maxY - minY + 1;
-    var scale = Math.min(80 / bw, 80 / bh);
-    var sw = bw * scale;
-    var sh = bh * scale;
+    var aspect = bw / bh;
+    var sw, sh;
+    
+    if (aspect < 0.35 || aspect > 2.8) {
+        var scale = Math.min(80 / bw, 80 / bh);
+        sw = bw * scale;
+        sh = bh * scale;
+    } else {
+        sw = 80;
+        sh = 80;
+    }
+    
     var dx = 50 - sw / 2;
     var dy = 50 - sh / 2;
     
@@ -277,12 +286,33 @@ function normalizeTo100x100(srcCanvas) {
     
     var dstData = dctx.getImageData(0,0,100,100);
     var px = dstData.data;
-    for(var j=0; j<px.length; j+=4) {
-        var v = (px[j]+px[j+1]+px[j+2]) < 384 ? 0 : 255;
-        px[j]=px[j+1]=px[j+2] = v;
-        px[j+3] = 255;
+    var out = dctx.createImageData(100,100);
+    var op = out.data;
+    var r = 6;
+    
+    for(var y=0; y<100; y++){
+        for(var x=0; x<100; x++){
+            var idx = (y*100+x)*4;
+            var isBlack = false;
+            lp: for(var dy=-r; dy<=r; dy++){
+                var ny = y+dy;
+                if(ny<0 || ny>=100) continue;
+                for(var dx=-r; dx<=r; dx++){
+                    var nx = x+dx;
+                    if(nx<0 || nx>=100) continue;
+                    var origIdx = (ny*100+nx)*4;
+                    if((px[origIdx]+px[origIdx+1]+px[origIdx+2]) < 400) {
+                        isBlack = true;
+                        break lp;
+                    }
+                }
+            }
+            var v = isBlack ? 0 : 255;
+            op[idx] = op[idx+1] = op[idx+2] = v;
+            op[idx+3] = 255;
+        }
     }
-    dctx.putImageData(dstData, 0,0);
+    dctx.putImageData(out, 0,0);
     return dst;
 }
 
