@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -8,22 +9,25 @@
     <link rel="stylesheet" href="./css/style.css">
     <script src="./js/offline/tesseract.min.js"></script>
 </head>
+
 <body>
 
     <header>
-        <h1>✏️ ¡Dibuja una letra!</h1>
+        <h1>✏️ ¡Dibuja una letra o número! 🔢</h1>
         <p class="subtitle">Escribe con el dedo o el mouse — la IA adivina sola</p>
-        <a href="./learn.html" style="display:block;text-align:center;margin-top:4px;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.85rem;color:#4caf50;text-decoration:none;">📚 Aprender a escribir →</a>
+        <a href="./learn.html"
+            style="display:block;text-align:center;margin-top:4px;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.85rem;color:#4caf50;text-decoration:none;">📚
+            Aprender a escribir →</a>
     </header>
 
     <div class="canvas-wrapper" id="canvasWrapper">
         <canvas id="canvas" aria-label="Área de dibujo"></canvas>
-        <div class="canvas-hint" id="canvasHint">Dibuja aquí 🖊️</div>
+        <div class="canvas-hint" id="canvasHint">¡Dibuja aquí una letra o número! 🖊️</div>
         <div class="progress-bar" id="progressBar"></div>
     </div>
 
     <div class="result-area">
-        <span class="result-label">La letra es:</span>
+        <span class="result-label">La letra o número es:</span>
         <div id="output" class="empty">—</div>
     </div>
 
@@ -40,4 +44,5 @@
     <script src="./js/online/google_api.js"></script>
     <script src="./js/ui/app.js"></script>
 </body>
+
 </html>
