@@ -283,76 +283,96 @@ function normalizeTo100x100(srcCanvas) {
     var dy = 50 - sh / 2;
     
     dctx.drawImage(srcCanvas, minX, minY, bw, bh, dx, dy, sw, sh);
+    return dst;
+}
+
+function computeDistanceTransform(imgData) {
+    var px = imgData.data;
+    var dist = new Float32Array(10000);
+    var blackPixels = [];
     
-    var dstData = dctx.getImageData(0,0,100,100);
-    var px = dstData.data;
-    var out = dctx.createImageData(100,100);
-    var op = out.data;
-    var r = 6;
-    
-    for(var y=0; y<100; y++){
-        for(var x=0; x<100; x++){
+    for(var y=0; y<100; y++) {
+        for(var x=0; x<100; x++) {
             var idx = (y*100+x)*4;
-            var isBlack = false;
-            lp: for(var dy=-r; dy<=r; dy++){
-                var ny = y+dy;
-                if(ny<0 || ny>=100) continue;
-                for(var dx=-r; dx<=r; dx++){
-                    var nx = x+dx;
-                    if(nx<0 || nx>=100) continue;
-                    var origIdx = (ny*100+nx)*4;
-                    if((px[origIdx]+px[origIdx+1]+px[origIdx+2]) < 400) {
-                        isBlack = true;
-                        break lp;
-                    }
-                }
+            if( (px[idx]+px[idx+1]+px[idx+2]) < 600 ) {
+                dist[y*100+x] = 0;
+                blackPixels.push(y*100+x);
+            } else {
+                dist[y*100+x] = 999;
             }
-            var v = isBlack ? 0 : 255;
-            op[idx] = op[idx+1] = op[idx+2] = v;
-            op[idx+3] = 255;
         }
     }
-    dctx.putImageData(out, 0,0);
-    return dst;
+    
+    for(var y=0; y<100; y++) {
+        for(var x=0; x<100; x++) {
+            var i = y*100+x;
+            if(dist[i] === 0) continue;
+            var d = dist[i];
+            if(x > 0) d = Math.min(d, dist[i-1] + 1);
+            if(y > 0) d = Math.min(d, dist[i-100] + 1);
+            dist[i] = d;
+        }
+    }
+    for(var y=99; y>=0; y--) {
+        for(var x=99; x>=0; x--) {
+            var i = y*100+x;
+            var d = dist[i];
+            if(x < 99) d = Math.min(d, dist[i+1] + 1);
+            if(y < 99) d = Math.min(d, dist[i+100] + 1);
+            dist[i] = d;
+        }
+    }
+    return { dist: dist, pixels: blackPixels };
 }
 
 var TEMPLATES = {};
 function initTemplates() {
     for (var k in LETTERS_UPPER) {
         var raw = drawLetterTo100x100(LETTERS_UPPER[k]);
-        TEMPLATES[k] = normalizeTo100x100(raw).getContext('2d').getImageData(0,0,100,100).data;
+        var norm = normalizeTo100x100(raw);
+        TEMPLATES[k] = computeDistanceTransform(norm.getContext('2d').getImageData(0,0,100,100));
     }
     for (var k in LETTERS_LOWER) {
         var raw = drawLetterTo100x100(LETTERS_LOWER[k]);
-        TEMPLATES[k] = normalizeTo100x100(raw).getContext('2d').getImageData(0,0,100,100).data;
+        var norm = normalizeTo100x100(raw);
+        TEMPLATES[k] = computeDistanceTransform(norm.getContext('2d').getImageData(0,0,100,100));
     }
 }
 setTimeout(initTemplates, 500); // Async to not block initial load
 
 function matchShape(base) {
     var normCanvas = normalizeTo100x100(base);
-    var target = normCanvas.getContext('2d').getImageData(0,0,100,100).data;
+    var targetDT = computeDistanceTransform(normCanvas.getContext('2d').getImageData(0,0,100,100));
+
+    if (targetDT.pixels.length === 0) return { text: '', confidence: 0, distance: 999 };
 
     var bestLetter = '';
-    var bestScore = -1;
+    var bestDistance = 9999;
 
     for (var char in TEMPLATES) {
-        var tData = TEMPLATES[char];
-        var intersection = 0, union = 0;
-        for (var i = 0; i < target.length; i += 4) {
-            var isTargetBlack = target[i] < 128;
-            var isTemplateBlack = tData[i] < 128;
-            if (isTargetBlack && isTemplateBlack) intersection++;
-            if (isTargetBlack || isTemplateBlack) union++;
+        var tmpl = TEMPLATES[char];
+        if (tmpl.pixels.length === 0) continue;
+        
+        var sumT2U = 0;
+        for(var i=0; i<tmpl.pixels.length; i++) {
+            sumT2U += targetDT.dist[tmpl.pixels[i]];
         }
-        var iou = union === 0 ? 0 : intersection / union;
-        if (iou > bestScore) {
-            bestScore = iou;
+        var avgT2U = sumT2U / tmpl.pixels.length;
+        
+        var sumU2T = 0;
+        for(var i=0; i<targetDT.pixels.length; i++) {
+            sumU2T += tmpl.dist[targetDT.pixels[i]];
+        }
+        var avgU2T = sumU2T / targetDT.pixels.length;
+        
+        var totalDist = avgT2U + avgU2T;
+        if (totalDist < bestDistance) {
+            bestDistance = totalDist;
             bestLetter = char;
         }
     }
-    var conf = Math.min(100, bestScore * 200); 
-    return { text: bestLetter, confidence: conf, iou: bestScore };
+    var conf = Math.max(0, 100 - bestDistance * 5);
+    return { text: bestLetter, confidence: conf, distance: bestDistance };
 }
 
 /* ============================================================
@@ -437,10 +457,10 @@ function recognizeDrawing() {
             bestTess = results[results.length - 1];
 
         var finalBest;
-        // Si el template encaja muy bien (IoU > 0.35), le ganará a Tesseract porque es específico de la geometría
-        if (shapeResult.iou > 0.35) {
+        // Distancia Chamfer: < 10 es un match casi perfecto
+        if (shapeResult.distance < 12) {
             finalBest = shapeResult;
-        } else if (bestTess.confidence > 60) {
+        } else if (bestTess.confidence > 65) {
             finalBest = bestTess;
         } else {
             finalBest = (shapeResult.confidence > bestTess.confidence) ? shapeResult : bestTess;
