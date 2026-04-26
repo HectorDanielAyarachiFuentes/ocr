@@ -37,7 +37,7 @@ window.HF_OCR = {
             console.log("HuggingFace TrOCR cargado y listo (offline caching activado).");
             
             if (statusBar) {
-                statusBar.innerHTML = 'IA Offline lista.';
+                statusBar.innerHTML = '✨ Usando IA <b style="color: #22c55e;">Online</b> (Respaldo Offline listo por si falla internet).';
                 statusBar.className = 'status-bar';
             }
         } catch (err) {

@@ -169,7 +169,7 @@ async function recognizeDrawing() {
     }
 
     // 2. Motor de Respaldo: Offline Local (Transformers.js)
-    statusBar.innerHTML = '<span class="spinner"></span> Sin conexión... usando IA local TrOCR...';
+    statusBar.innerHTML = '<span class="spinner"></span> Sin conexión... usando offline modo...';
 
     if (window.HF_OCR) {
         // Obtener imagen con fondo blanco (TrOCR espera imágenes con fondo blanco, no transparente)
@@ -189,7 +189,7 @@ async function recognizeDrawing() {
         if (hfResult) {
             output.textContent = hfResult;
             output.classList.remove('empty');
-            setStatus('¡Lo adiviné! 🎉 — (IA Offline)', 'success');
+            setStatus('¡Lo adiviné! 🎉 — (Usando offline modo)', 'success');
             speakText(hfResult);
         } else {
             setStatus('No pude leerlo. ¡Intenta de nuevo!', 'error');
