@@ -141,7 +141,7 @@ function clearCanvas() {
 /*
   Reconocimiento principal HÍBRIDO:
   1. Intenta Google Handwriting API.
-  2. Si falla o no hay internet, usa Tesseract + Geometría.
+  2. Si falla o no hay internet, usa el motor local DTW Vectorial.
 */
 async function recognizeDrawing() {
     if (!hasDrawn || busy) return;
@@ -151,96 +151,53 @@ async function recognizeDrawing() {
     statusBar.className = 'status-bar thinking';
     output.classList.add('empty');
 
-    var base = buildBaseCanvas(canvas, ctx);
-    if (!base) {
+    if (strokes.length === 0) {
         busy = false;
         setStatus('Dibuja algo primero.', 'error');
         return;
     }
 
     // 1. Motor Primario: Google API
-    if (strokes.length > 0) {
-        var googleResult = await askGoogleAPI(strokes, canvas.width, canvas.height);
-        if (googleResult) {
-            busy = false;
-            output.textContent = googleResult;
-            output.classList.remove('empty');
-            setStatus('¡Lo adiviné! 🎉 — Escucha y voz completada.', 'success');
-            speakText(googleResult);
-            return;
-        }
-    }
-
-    // 2. Motor de Respaldo: Offline Local (Geometría + Tesseract)
-    statusBar.innerHTML = '<span class="spinner"></span> Sin conexión... usando IA local...';
-
-    var variants = [
-        base.toDataURL('image/png'),
-        erodeOff(cloneOff(base), 1).toDataURL('image/png'),
-        erodeOff(cloneOff(base), 2).toDataURL('image/png'),
-        invertOff(base).toDataURL('image/png')
-    ];
-
-    var tasks = [];
-    var psms  = [7, 8];
-    for (var vi = 0; vi < variants.length; vi++) {
-        for (var pi = 0; pi < psms.length; pi++) {
-            tasks.push(tryRecognize(variants[vi], psms[pi]));
-        }
-    }
-    tasks.push(tryRecognize(variants[0], 13)); // PSM 13: raw line
-
-    var shapeResult = matchShape(base);
-
-    Promise.all(tasks).then(function (results) {
+    var googleResult = await askGoogleAPI(strokes, canvas.width, canvas.height);
+    if (googleResult) {
         busy = false;
-        var bestTess = { text: '', confidence: -1 };
+        output.textContent = googleResult;
+        output.classList.remove('empty');
+        setStatus('¡Lo adiviné! 🎉 — (Google API)', 'success');
+        speakText(googleResult);
+        return;
+    }
 
-        for (var i = 0; i < results.length; i++) {
-            var r = results[i];
-            if (r.text && r.confidence > bestTess.confidence) bestTess = r;
-        }
-        if (!bestTess.text && results[results.length - 1].text)
-            bestTess = results[results.length - 1];
+    // 2. Motor de Respaldo: Offline Local (Transformers.js)
+    statusBar.innerHTML = '<span class="spinner"></span> Sin conexión... usando IA local TrOCR...';
 
-        var finalBest;
-        var tessText = bestTess.text;
+    if (window.HF_OCR) {
+        // Obtener imagen con fondo blanco (TrOCR espera imágenes con fondo blanco, no transparente)
+        var tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        var tempCtx = tempCanvas.getContext('2d');
+        tempCtx.fillStyle = '#ffffff';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.drawImage(canvas, 0, 0);
         
-        // Filtro Lógico: Veto a Tesseract
-        var isTesseractVetoed = false;
-        if (tessText && shapeResult.scores) {
-            var shapeScoreForTess = shapeResult.scores[tessText];
-            if (shapeScoreForTess === undefined) {
-                 var alt = tessText === tessText.toLowerCase() ? tessText.toUpperCase() : tessText.toLowerCase();
-                 shapeScoreForTess = shapeResult.scores[alt];
-            }
-            if (shapeScoreForTess > 18) {
-                 isTesseractVetoed = true;
-            }
-        }
-
-        // Decisión final usando el veto
-        if (shapeResult.distance < 15) {
-            finalBest = shapeResult;
-        } else if (!isTesseractVetoed && bestTess.confidence > 65) {
-            finalBest = bestTess;
-        } else {
-            finalBest = shapeResult; // Si Tesseract está vetado, confiamos en la geometría
-        }
-
-        if (finalBest && finalBest.text) {
-            output.textContent = finalBest.text;
+        var imgUrl = tempCanvas.toDataURL('image/png');
+        
+        var hfResult = await window.HF_OCR.recognize(imgUrl);
+        busy = false;
+        
+        if (hfResult) {
+            output.textContent = hfResult;
             output.classList.remove('empty');
-            var tStatus = isTesseractVetoed ? 'VETADO' : Math.round(bestTess.confidence);
-            var debugInfo = 'Geometría: ' + shapeResult.text + ' (' + Math.round(shapeResult.distance) + ') | OCR: ' + bestTess.text + ' (' + tStatus + ')';
-            setStatus('¡Lo adiviné! 🎉 — Escucha y voz completada.', 'success');
-            
-            // Motor de Voz
-            speakText(finalBest.text);
+            setStatus('¡Lo adiviné! 🎉 — (IA Offline)', 'success');
+            speakText(hfResult);
         } else {
-            setStatus('No pude leerlo. ¡Escribe más grande!', 'error');
+            setStatus('No pude leerlo. ¡Intenta de nuevo!', 'error');
         }
-    });
+    } else {
+        busy = false;
+        setStatus('Motor offline no disponible.', 'error');
+    }
 }
 
 /* ── Motor de Voz (Text-to-Speech) ── */

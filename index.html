@@ -28,7 +28,8 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
-    <script src="./js/offline/tesseract.min.js"></script>
+    <!-- Motor Offline IA Local (Transformers.js) -->
+    <script type="module" src="./js/offline/hf_bridge.js"></script>
 </head>
 
 <body>
@@ -63,9 +64,6 @@
 
     <div class="status-bar" id="statusBar">Esperando trazo…</div>
 
-    <script src="./js/offline/letters.js"></script>
-    <script src="./js/offline/geometry.js"></script>
-    <script src="./js/offline/local_ocr.js"></script>
     <script src="./js/online/google_api.js"></script>
     <script src="./js/ui/app.js"></script>
 </body>
