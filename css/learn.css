@@ -62,6 +62,9 @@ header {
     left: 50%;
     transform: translateX(-50%);
     pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 h1 {
@@ -131,11 +134,11 @@ h1 {
 }
 
 .current-letter {
-    font-size: clamp(3.5rem, 12vw, 5.5rem);
+    font-size: clamp(3rem, 12vw, 5.5rem);
     font-weight: 900;
     color: #ff6b35;
-    min-width: 100px;
-    height: 100px;
+    min-width: clamp(80px, 20vw, 100px);
+    height: clamp(80px, 20vw, 100px);
     text-align: center;
     line-height: 1;
     display: flex;
@@ -251,11 +254,12 @@ body.expanded-mode .canvas-area {
 /* ── Instruction ── */
 .instruction {
     flex-shrink: 0;
-    font-size: clamp(0.85rem, 3vw, 1rem);
-    font-weight: 700;
-    color: #888;
+    font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+    font-weight: 800;
+    color: #777;
     text-align: center;
     height: 1.4em;
+    margin: 4px 0;
 }
 .instruction.success { color: #4caf50; }
 .instruction.thinking { color: #ff6b35; }
@@ -263,24 +267,29 @@ body.expanded-mode .canvas-area {
 /* ── Controls ── */
 .controls {
     flex-shrink: 0;
-    display: flex;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
     width: 100%;
     max-width: 640px;
     justify-content: center;
 }
 .controls button {
-    flex: 1;
-    max-width: 180px;
-    padding: clamp(8px, 2vh, 14px) 8px;
+    width: 100%;
+    padding: clamp(10px, 2vh, 14px) 4px;
     font-family: 'Nunito', sans-serif;
-    font-size: clamp(0.85rem, 3vw, 1rem);
+    font-size: clamp(0.85rem, 3.5vw, 1rem);
     font-weight: 900;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
     color: #fff;
-    transition: transform 0.1s, box-shadow 0.1s;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 .controls button:active { transform: scale(0.96) translateY(2px); box-shadow: none !important; }
 
@@ -322,4 +331,45 @@ body.expanded-mode .canvas-area {
     0%   { opacity: 1; transform: scale(0.5); }
     50%  { opacity: 1; transform: scale(1.2); }
     100% { opacity: 0; transform: scale(1.5); }
+}
+
+/* ── Mobile Responsive Tweaks ── */
+@media (max-width: 480px) {
+    header {
+        padding: 6px 0;
+    }
+    .header-center {
+        position: static;
+        transform: none;
+    }
+    header {
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .back-btn, .case-toggle {
+        margin: 0 4px;
+    }
+    h1 {
+        width: 100%;
+        text-align: center;
+        order: -1;
+        margin-bottom: 4px;
+        font-size: 1.4rem;
+    }
+    .controls {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    .controls button {
+        padding: 12px 6px;
+        font-size: 0.95rem;
+    }
+    .letter-nav {
+        gap: 12px;
+    }
+    .letter-nav button {
+        width: 42px; height: 42px;
+        font-size: 1.5rem;
+    }
 }
