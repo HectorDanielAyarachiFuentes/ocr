@@ -167,13 +167,50 @@ window.appContext = (function() {
         statusBar.innerHTML = '<span class="spinner"></span> Sin conexión... usando offline modo...';
 
         if (window.HF_OCR) {
+            // Calcular Bounding Box de los trazos
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            for (let stroke of strokes) {
+                let xs = stroke[0];
+                let ys = stroke[1];
+                for (let i = 0; i < xs.length; i++) {
+                    if (xs[i] < minX) minX = xs[i];
+                    if (xs[i] > maxX) maxX = xs[i];
+                    if (ys[i] < minY) minY = ys[i];
+                    if (ys[i] > maxY) maxY = ys[i];
+                }
+            }
+
+            // Validar límites
+            if (minX === Infinity) { 
+                minX = 0; minY = 0; maxX = canvas.width; maxY = canvas.height; 
+            }
+            
+            // Añadir margen del dibujo (padding)
+            let strokeW = maxX - minX;
+            let strokeH = maxY - minY;
+            let size = Math.max(strokeW, strokeH);
+            let padding = Math.max(20, size * 0.2);
+            let finalSize = size + padding * 2;
+            
+            // Para TrOCR, un tamaño consistente como 384x384 o 224x224 ayuda
+            let targetSize = Math.max(finalSize, 224);
+            
             var tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
+            tempCanvas.width = targetSize;
+            tempCanvas.height = targetSize;
             var tempCtx = tempCanvas.getContext('2d');
+            
+            // Fondo blanco indispensable
             tempCtx.fillStyle = '#ffffff';
-            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            tempCtx.drawImage(canvas, 0, 0);
+            tempCtx.fillRect(0, 0, targetSize, targetSize);
+            
+            // Calcular desplazamiento para centrar el dibujo en el nuevo lienzo
+            let offsetX = (targetSize - strokeW) / 2 - minX;
+            let offsetY = (targetSize - strokeH) / 2 - minY;
+            
+            // Usamos drawImage que dibujará el canvas original desplazado.
+            // Al ser el canvas original transparente, solo se pegan los trazos sobre el blanco.
+            tempCtx.drawImage(canvas, offsetX, offsetY);
             
             var imgUrl = tempCanvas.toDataURL('image/png');
             

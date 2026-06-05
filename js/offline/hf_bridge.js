@@ -59,9 +59,20 @@ window.HF_OCR = {
         try {
             // El pipeline espera una URL de imagen o un objeto de imagen.
             let result = await this.recognizer(imageUrl);
-            // El resultado es un array de objetos, ej: [{ generated_text: 'Hello' }]
             if (result && result.length > 0 && result[0].generated_text) {
-                return result[0].generated_text.trim();
+                let rawText = result[0].generated_text.trim();
+                console.log("TrOCR predicción cruda:", rawText);
+                
+                // Filtro: buscar letras y números, permitiendo palabras completas
+                // Eliminamos caracteres extraños al inicio o final, pero dejamos la palabra
+                let cleanedText = rawText.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s]/g, '').trim();
+                
+                if (cleanedText) {
+                    // Retornar la palabra completa en mayúsculas para mejor visualización
+                    return cleanedText.toUpperCase();
+                }
+                
+                return rawText ? rawText.toUpperCase() : null;
             }
         } catch (err) {
             console.error("Error en inferencia TrOCR:", err);
