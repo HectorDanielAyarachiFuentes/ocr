@@ -31,7 +31,7 @@ window.appContext = (function() {
         ctx.lineWidth   = Math.max(10, w * 0.028);
         ctx.lineCap     = 'round';
         ctx.lineJoin    = 'round';
-        ctx.strokeStyle = '#222';
+        ctx.strokeStyle = document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#222';
         if (img) { try { ctx.putImageData(img, 0, 0); } catch (e) {} }
     }
     resizeCanvas();
@@ -60,6 +60,10 @@ window.appContext = (function() {
         drawing = true;
         if (!hasDrawn) { hint.classList.add('hidden'); hasDrawn = true; }
         setProgress(0);
+        
+        // Ajustar color según el tema actual (claro/oscuro)
+        ctx.strokeStyle = document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#222';
+        
         var p = getPos(e);
         ctx.beginPath();
         ctx.moveTo(p.x, p.y);
@@ -246,6 +250,35 @@ window.appContext = (function() {
         }
     }
 
+    function redrawStrokes() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#222';
+        
+        for (let i = 0; i < strokes.length; i++) {
+            let s = strokes[i];
+            let xs = s[0];
+            let ys = s[1];
+            if (xs.length > 0) {
+                ctx.beginPath();
+                ctx.moveTo(xs[0], ys[0]);
+                for (let j = 1; j < xs.length; j++) {
+                    ctx.lineTo(xs[j], ys[j]);
+                }
+                ctx.stroke();
+            }
+        }
+        
+        // Redibujar el trazo actual si está a medio dibujar
+        if (drawing && currentStroke.x.length > 0) {
+            ctx.beginPath();
+            ctx.moveTo(currentStroke.x[0], currentStroke.y[0]);
+            for (let j = 1; j < currentStroke.x.length; j++) {
+                ctx.lineTo(currentStroke.x[j], currentStroke.y[j]);
+            }
+            ctx.stroke();
+        }
+    }
+
     function toggleExpand() {
         document.body.classList.toggle('expanded-mode');
         const btn = document.getElementById('btn-expand-draw');
@@ -263,6 +296,7 @@ window.appContext = (function() {
         clearCanvas: clearCanvas,
         replaySpeech: replaySpeech,
         toggleExpand: toggleExpand,
-        resizeCanvas: resizeCanvas
+        resizeCanvas: resizeCanvas,
+        redrawStrokes: redrawStrokes
     };
 })();

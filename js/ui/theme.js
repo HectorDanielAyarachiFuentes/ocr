@@ -13,6 +13,11 @@ function toggleTheme() {
         btn.innerHTML = isDark ? '<i class="ph-fill ph-sun"></i>' : '<i class="ph-fill ph-moon"></i>';
         btn.style.color = isDark ? '#FBBF24' : '#A78BFA';
     });
+
+    // Redibujar trazos del canvas si existe el contexto
+    if (window.appContext && window.appContext.redrawStrokes) {
+        window.appContext.redrawStrokes();
+    }
 }
 
 // Cargar el tema guardado o la preferencia del sistema al inicio
