@@ -28,8 +28,9 @@
             <span class="icon">←</span>
             <span class="text">Volver</span>
         </a>
-        <div class="header-center">
-            <h1>✏️🔢 Aprende</h1>
+        <div class="header-center" style="gap: 12px;">
+            <h1>✏️ Aprende</h1>
+            <div class="stars-counter" id="starsCounter" style="font-size: 1.1rem; font-weight: bold; background: #FFF3E0; padding: 4px 10px; border-radius: 20px; border: 2px solid #FFB300; color: #FF8F00; box-shadow: 0 2px 0 rgba(255,179,0,0.3);">⭐ 0</div>
         </div>
         <div class="case-toggle">
             <button id="btn-upper" class="active" onclick="setCase('upper')">ABC</button>
@@ -64,7 +65,8 @@
 
     <div class="stroke-progress" id="strokeProgress"></div>
 
-    <!-- Librería para el efecto de crayón/marcador mágico -->
+    <!-- Librerías de efectos mágicos y confeti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>var exports = {};</script>
     <script src="https://unpkg.com/perfect-freehand"></script>
     <script>window.perfectFreehand = exports;</script>

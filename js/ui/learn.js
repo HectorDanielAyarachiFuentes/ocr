@@ -13,11 +13,66 @@ var demoPlaying  = false;
 var demoTimer    = null;
 var letterTimer  = null; // Evita acumular timeouts si se hace clic muy rápido
 
+// Estado de gamificación
+var starsEarned = 0;
+var letterCompleted = false;
+
 // Nuevas variables para el crayón mágico
 var userStrokes = [];
 var crayonColors = ['#FF4B4B', '#FFB300', '#00E676', '#2979FF', '#D500F9', '#FF6D00'];
 var currentTraceColor = crayonColors[0];
 var patternCache = {};
+
+/* ── Motor de Sonido (SFX) ── */
+var audioCtx = null;
+function initAudio() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+}
+
+var SFX = {
+    playDing: function() {
+        initAudio();
+        var osc = audioCtx.createOscillator();
+        var gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); // A6
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.5);
+    },
+    playPop: function() {
+        initAudio();
+        var osc = audioCtx.createOscillator();
+        var gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.1);
+    }
+};
+
+// Sonido de pop en todos los botones
+document.addEventListener('click', function(e) {
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+        SFX.playPop();
+    }
+});
 
 /* ── Referencias DOM ── */
 var guideCanvas  = document.getElementById('guideCanvas');
@@ -347,18 +402,18 @@ traceCanvas.addEventListener('touchmove',  function(e){ e.preventDefault(); onMo
 
 /* ── Verificar trazo (comparación por píxeles) ── */
 function checkTrace() {
-    // Renderizar referencia en offscreen
     var ref = document.createElement('canvas');
     ref.width  = traceCanvas.width;
     ref.height = traceCanvas.height;
     var rc = ref.getContext('2d');
     var strokes = currentStrokes();
 
-    rc.lineWidth   = Math.max(30, traceCanvas.width * 0.12); // trazo grueso = tolerancia
+    rc.lineWidth   = Math.max(30, traceCanvas.width * 0.12);
     rc.lineCap     = 'round';
     rc.lineJoin    = 'round';
     rc.strokeStyle = '#000';
 
+    // 1. Dibujar TODA la referencia junta
     strokes.forEach(function (stroke) {
         rc.beginPath();
         rc.moveTo(mapX(stroke[0][0]), mapY(stroke[0][1]));
@@ -367,11 +422,15 @@ function checkTrace() {
         rc.stroke();
     });
 
-    // Contar píxeles del niño que caen dentro de la referencia
     var refData   = rc.getImageData(0, 0, ref.width, ref.height).data;
     var traceData = tCtx.getImageData(0, 0, traceCanvas.width, traceCanvas.height).data;
 
-    var childPx = 0, hitPx = 0;
+    var refPx = 0, childPx = 0, hitPx = 0;
+    
+    for (var i = 3; i < refData.length; i += 4) {
+        if (refData[i] > 50) refPx++;
+    }
+
     for (var i = 3; i < traceData.length; i += 4) {
         if (traceData[i] > 50) {
             childPx++;
@@ -380,12 +439,53 @@ function checkTrace() {
     }
 
     var score = childPx > 0 ? Math.round((hitPx / childPx) * 100) : 0;
+    var coverage = refPx > 0 ? Math.round((hitPx / refPx) * 100) : 0;
 
-    if (score >= 40) {
+    // 2. Verificar que haya dibujado TODOS los trazos requeridos
+    var allStrokesHit = true;
+    // Usamos el mismo grosor que el crayón del niño para que las intersecciones de otros trazos
+    // no sumen un porcentaje falso tan alto.
+    rc.lineWidth = Math.max(16, traceCanvas.width * 0.05); 
+    
+    for (var s = 0; s < strokes.length; s++) {
+        rc.clearRect(0, 0, ref.width, ref.height);
+        rc.beginPath();
+        rc.moveTo(mapX(strokes[s][0][0]), mapY(strokes[s][0][1]));
+        for (var i = 1; i < strokes[s].length; i++)
+            rc.lineTo(mapX(strokes[s][i][0]), mapY(strokes[s][i][1]));
+        rc.stroke();
+        
+        var singleRefData = rc.getImageData(0, 0, ref.width, ref.height).data;
+        var strokeRefPx = 0, strokeHitPx = 0;
+        
+        for (var i = 3; i < traceData.length; i += 4) {
+            if (singleRefData[i] > 50) {
+                strokeRefPx++;
+                if (traceData[i] > 50) strokeHitPx++;
+            }
+        }
+        
+        // Debe cubrir al menos el 35% de cada trazo individual 
+        // (Las puras intersecciones como en la 'A' o 'E' aportan menos del 25%)
+        if (strokeRefPx > 0 && (strokeHitPx / strokeRefPx) < 0.35) {
+            allStrokesHit = false;
+            break;
+        }
+    }
+
+    var enoughDrawn = coverage >= 20 && allStrokesHit;
+
+    if (score >= 40 && enoughDrawn && !letterCompleted) {
+        letterCompleted = true;
         celebrate();
-    } else if (childPx > 100) {
-        instrEl.textContent = 'Casi… intenta seguir la guía punteada 😊';
-        instrEl.className   = 'instruction';
+    } else if (childPx > 100 && !letterCompleted) {
+        if (!enoughDrawn && score >= 40) {
+            instrEl.textContent = '¡Vas bien! Termina la letra ✍️';
+            instrEl.className   = 'instruction';
+        } else {
+            instrEl.textContent = 'Casi… intenta seguir la guía punteada 😊';
+            instrEl.className   = 'instruction';
+        }
     }
 }
 
@@ -400,8 +500,26 @@ function clearTrace() {
 
 /* ── Celebración ── */
 function celebrate() {
+    // Sonido de victoria y lluvia de confeti
+    SFX.playDing();
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 },
+            colors: ['#FF4B4B', '#FFB300', '#00E676', '#2979FF', '#D500F9']
+        });
+    }
+
+    // Sumar estrellita
+    starsEarned++;
+    var counterEl = document.getElementById('starsCounter');
+    if (counterEl) counterEl.textContent = '⭐ ' + starsEarned;
+
     instrEl.textContent = '¡Muy bien! 🎉';
     instrEl.className   = 'instruction success';
+    
+    // Animación de estrellita original de la interfaz
     var el = document.createElement('div');
     el.className = 'celebrate';
     el.textContent = '⭐';
@@ -417,6 +535,7 @@ function loadLetter() {
     dCtx.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
     tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
     userStrokes  = [];
+    letterCompleted = false;
     // Escoger un color aleatorio para el crayón en cada letra nueva
     currentTraceColor = crayonColors[Math.floor(Math.random() * crayonColors.length)];
     hasDrawn     = false;
