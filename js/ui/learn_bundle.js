@@ -11,7 +11,10 @@ window.learnContext = (function() {
     var demoTimer    = null;
     var letterTimer  = null; 
     var starsEarned = 0;
+    var totalScore = 0;
     var letterCompleted = false;
+    var drawStartTime = 0;
+    var drawEndTime = 0;
     
     var userStrokes = [];
     var crayonColors = ['#FF4B4B', '#FFB300', '#00E676', '#2979FF', '#D500F9', '#FF6D00'];
@@ -306,7 +309,10 @@ window.learnContext = (function() {
     function onStart(e) {
         if (letterCompleted) return;
         drawing = true;
-        if (!hasDrawn) { hasDrawn = true; }
+        if (!hasDrawn) { 
+            hasDrawn = true; 
+            drawStartTime = Date.now();
+        }
         userStrokes.push([ getPos(e) ]);
         renderUserStrokes();
     }
@@ -338,6 +344,7 @@ window.learnContext = (function() {
         userStrokes = [];
         tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
         hasDrawn = false;
+        drawStartTime = 0;
         instrEl.textContent = '¡Ahora inténtalo tú! Traza encima';
         instrEl.className   = 'instruction';
     }
@@ -412,7 +419,19 @@ window.learnContext = (function() {
 
         if (score >= 40 && enoughDrawn && !letterCompleted) {
             letterCompleted = true;
-            celebrate();
+            drawEndTime = Date.now();
+            
+            // Lógica de puntos
+            var basePoints = 500;
+            var precisionMod = (score / 100) * (coverage / 100);
+            var precisionPoints = Math.round(basePoints * precisionMod * 1.5);
+            
+            // Bono de velocidad (max 500 puntos, decae con el tiempo)
+            var timeTaken = Math.max(0.1, (drawEndTime - drawStartTime) / 1000);
+            var timeBonus = Math.round(Math.max(0, 500 - (timeTaken * 40)));
+            
+            var earnedPoints = precisionPoints + timeBonus + 100; // 100 de base asegurados
+            celebrate(earnedPoints);
         } else if (childPx > 100 && !letterCompleted) {
             if (!enoughDrawn && score >= 40) {
                 instrEl.textContent = '¡Vas bien! Termina la letra ✍️';
@@ -438,7 +457,7 @@ window.learnContext = (function() {
         return Object.keys(set)[currentIndex];
     }
 
-    function celebrate() {
+    function celebrate(pointsEarned) {
         if (typeof window.SFX !== 'undefined') window.SFX.playDing();
         if (typeof window.confetti === 'function') {
             window.confetti({
@@ -450,12 +469,17 @@ window.learnContext = (function() {
         }
 
         starsEarned++;
-        var counterEl = document.getElementById('starsCounter');
-        if (counterEl) counterEl.innerHTML = '<i class="ph-fill ph-star"></i> ' + starsEarned;
+        totalScore += (pointsEarned || 1000);
+        
+        var starEl = document.getElementById('starCount');
+        var scoreEl = document.getElementById('totalScore');
+        if (starEl) starEl.textContent = starsEarned;
+        if (scoreEl) scoreEl.textContent = totalScore;
 
         instrEl.innerHTML = '¡Muy bien! <i class="ph-bold ph-confetti"></i>';
         instrEl.className   = 'instruction success';
         
+        // Animación de estrella clásica
         var el = document.createElement('div');
         el.className = 'celebrate';
         el.innerHTML = '<i class="ph-fill ph-star"></i>';
@@ -463,6 +487,19 @@ window.learnContext = (function() {
         setTimeout(function() {
             if (el.parentNode) el.parentNode.removeChild(el);
         }, 1600);
+
+        // Animación de puntaje flotante
+        var floatEl = document.createElement('div');
+        floatEl.className = 'floating-score';
+        floatEl.innerHTML = '+' + (pointsEarned || 1000);
+        // Centrar en pantalla
+        floatEl.style.left = '50%';
+        floatEl.style.top = '40%';
+        floatEl.style.transform = 'translate(-50%, -50%)';
+        document.body.appendChild(floatEl);
+        setTimeout(function() {
+            if (floatEl.parentNode) floatEl.parentNode.removeChild(floatEl);
+        }, 2000);
     }
 
     function speakChar(char) {
