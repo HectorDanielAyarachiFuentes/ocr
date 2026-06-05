@@ -480,7 +480,7 @@ body.expanded-mode .canvas-area { max-width: 100%; flex: 1; border-width: 6px; }
 
 /* ── Mobile Responsive Tweaks ── */
 .mobile-only { display: none !important; }
-.btn-clear-floating { display: none; }
+.btn-clear-floating, .btn-demo-floating { display: none; }
 
 @media (max-width: 767px) {
     .desktop-only { display: none !important; }
@@ -491,7 +491,9 @@ body.expanded-mode .canvas-area { max-width: 100%; flex: 1; border-width: 6px; }
     .theme-toggle { width: 36px; height: 36px; font-size: 1.2rem; }
     
     .app-layout { padding: 6px; gap: 6px; }
-    .sidebar { gap: 6px; }
+    
+    /* Reorganizar Sidebar normal para la fila única de nav */
+    .sidebar { display: flex; flex-direction: column; gap: 8px; width: 100%; }
     
     /* Row 2: Nav + Score + Speak */
     .nav-score-row { 
@@ -499,54 +501,48 @@ body.expanded-mode .canvas-area { max-width: 100%; flex: 1; border-width: 6px; }
         align-items: center; 
         justify-content: space-between; 
         width: 100%; 
-        padding: 0 4px;
+        padding: 0 2px;
     }
-    .stars-counter { margin: 0; padding: 6px 10px; font-size: 1rem; }
+    .stars-counter { margin: 0; padding: 4px 8px; font-size: 0.9rem; }
     
-    .letter-nav { gap: 8px; }
-    .letter-nav button { width: 44px; height: 44px; font-size: 1.5rem; }
-    .current-letter { min-width: 54px; height: 54px; font-size: 2.2rem; border-width: 2px; }
+    .letter-nav { gap: 4px; }
+    .letter-nav button { width: 36px; height: 36px; font-size: 1.2rem; padding: 0; }
+    .current-letter { min-width: 46px; height: 46px; font-size: 1.8rem; border-width: 2px; }
+    
+    /* Inline Play and Trash buttons inside letter-nav */
+    .btn-demo-inline { 
+        background: var(--info-color) !important; 
+        color: white !important; 
+        border: none !important;
+        box-shadow: 0 3px 0 var(--info-shadow) !important;
+    }
+    .btn-clear-inline { 
+        background: var(--danger-color) !important; 
+        color: white !important; 
+        border: none !important;
+        box-shadow: 0 3px 0 var(--danger-shadow) !important;
+    }
+    .btn-demo-inline:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--info-shadow) !important; }
+    .btn-clear-inline:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--danger-shadow) !important; }
     
     .btn-speak-mobile {
-        width: 44px; height: 44px; 
+        width: 36px; height: 36px; 
         border-radius: var(--radius-sm); 
         background: var(--info-color); 
         color: white; 
         border: none; 
         align-items: center; justify-content: center; 
-        font-size: 1.5rem; 
-        box-shadow: 0 4px 0 var(--info-shadow);
+        font-size: 1.2rem; 
+        box-shadow: 0 3px 0 var(--info-shadow);
     }
-    .btn-speak-mobile:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--info-shadow); }
+    .btn-speak-mobile:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--info-shadow); }
     
     .instruction { display: none; } /* Ocultar texto "Primero mira..." */
-    #btn-speak { display: none; } /* Ocultar botón grande de escuchar */
-    #btn-clear { display: none; } /* Ocultar botón grande de borrar */
     
-    /* Row 3: Action buttons (Solo 2 restantes) */
-    .controls-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-    .controls-grid button { padding: 10px 4px; font-size: 1.1rem; }
+    /* Ocultar cuadrícula de controles grandes por completo en móviles */
+    .controls-grid { display: none !important; }
+    
+    .stroke-progress { grid-area: dots; justify-self: center; margin: 0; padding: 0; }
     
     .canvas-area { border-width: 2px; border-radius: var(--radius-sm); position: relative; }
-    
-    /* Floating Clear Button dentro del canvas */
-    .btn-clear-floating {
-        display: flex;
-        position: absolute;
-        bottom: 12px;
-        left: 12px;
-        width: 44px;
-        height: 44px;
-        background: var(--danger-color);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1.5rem;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 10;
-        box-shadow: 0 4px 0 var(--danger-shadow);
-    }
-    .btn-clear-floating:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--danger-shadow); }
 }
