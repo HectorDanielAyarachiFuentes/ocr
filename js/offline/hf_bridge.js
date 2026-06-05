@@ -1,9 +1,11 @@
 /* hf_bridge.js - Puente para HuggingFace transformers.js */
 import { pipeline, env } from './transformers.js';
 
-// Optimizar para uso en navegador y modo offline
-env.allowLocalModels = false;
-env.useBrowserCache = true;
+// 🚀 MODO 100% LOCAL Y OFFLINE ACTIVADO
+env.allowLocalModels = true; // Permite buscar en la carpeta local
+env.localModelPath = './models/'; // Le decimos dónde está la carpeta base
+env.allowRemoteModels = false; // Apagamos la descarga de internet
+env.useBrowserCache = false; // Ya no hace falta caché porque está en el disco local
 
 window.HF_OCR = {
     isReady: false,
