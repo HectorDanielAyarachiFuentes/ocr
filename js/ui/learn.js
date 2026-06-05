@@ -12,6 +12,12 @@ var currentIndex = 0;
 var demoPlaying  = false;
 var demoTimer    = null;
 
+// Nuevas variables para el crayón mágico
+var userStrokes = [];
+var crayonColors = ['#FF4B4B', '#FFB300', '#00E676', '#2979FF', '#D500F9', '#FF6D00'];
+var currentTraceColor = crayonColors[0];
+var patternCache = {};
+
 /* ── Referencias DOM ── */
 var guideCanvas  = document.getElementById('guideCanvas');
 var demoCanvas   = document.getElementById('demoCanvas');
@@ -40,6 +46,7 @@ function resizeCanvases() {
     tCtx.lineJoin    = 'round';
     tCtx.strokeStyle = '#1a237e';
     drawGuide();
+    if (typeof renderUserStrokes === 'function') renderUserStrokes();
 }
 resizeCanvases();
 new ResizeObserver(resizeCanvases).observe(document.getElementById('canvasArea'));
@@ -51,34 +58,84 @@ function mapY(ny) {
     return pad + (ny / 100) * (guideCanvas.height - 2 * pad);
 }
 
+/* ── Helpers para Renderizado Orgánico ── */
+function interpolateStroke(stroke) {
+    var dense = [];
+    var stepSize = 4; // Distancia para suavizar la animación
+    for (var i = 0; i < stroke.length - 1; i++) {
+        var p0 = stroke[i];
+        var p1 = stroke[i + 1];
+        var dx = p1[0] - p0[0];
+        var dy = p1[1] - p0[1];
+        var dist = Math.sqrt(dx*dx + dy*dy);
+        var steps = Math.max(1, Math.floor(dist / stepSize));
+        for (var j = 0; j < steps; j++) {
+            dense.push([ p0[0] + dx * (j / steps), p0[1] + dy * (j / steps) ]);
+        }
+    }
+    dense.push(stroke[stroke.length - 1]);
+    return dense;
+}
+
+function drawPerfectStroke(ctx, points, color, sizeRatio) {
+    if (points.length === 0) return;
+    var mapped = points.map(function(p) { return [mapX(p[0]), mapY(p[1]), 0.5]; });
+    var size = Math.max(16, guideCanvas.width * (sizeRatio || 0.05));
+    
+    var strokeShape = perfectFreehand.getStroke(mapped, {
+        size: size,
+        thinning: 0,
+        smoothing: 0.5,
+        streamline: 0.5,
+        simulatePressure: false
+    });
+    
+    if (strokeShape.length === 0) return;
+
+    ctx.beginPath();
+    ctx.moveTo(strokeShape[0][0], strokeShape[0][1]);
+    for (var i = 1; i < strokeShape.length - 1; i++) {
+        var p0 = strokeShape[i];
+        var p1 = strokeShape[i + 1];
+        ctx.quadraticCurveTo(p0[0], p0[1], (p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2);
+    }
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+}
+
 /* ── Dibujar guía punteada (letra fantasma) ── */
 function drawGuide() {
     gCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
-    var strokes = currentStrokes();
-    if (!strokes) return;
+    var rawStrokes = currentStrokes();
+    if (!rawStrokes) return;
+    var strokes = rawStrokes.map(interpolateStroke);
 
-    gCtx.save();
-    gCtx.setLineDash([8, 10]);
-    gCtx.lineWidth   = Math.max(6, guideCanvas.width * 0.025);
-    gCtx.lineCap     = 'round';
-    gCtx.lineJoin    = 'round';
-    gCtx.strokeStyle = 'rgba(255,107,53,0.25)';
-
+    // Dibujamos la guía gruesa y suave (riel)
     strokes.forEach(function (stroke) {
-        gCtx.beginPath();
-        gCtx.moveTo(mapX(stroke[0][0]), mapY(stroke[0][1]));
-        for (var i = 1; i < stroke.length; i++)
-            gCtx.lineTo(mapX(stroke[i][0]), mapY(stroke[i][1]));
-        gCtx.stroke();
+        drawPerfectStroke(gCtx, stroke, 'rgba(200, 215, 230, 0.7)', 0.05);
     });
-    gCtx.restore();
 
     // Número de orden al inicio de cada trazo
     strokes.forEach(function (stroke, idx) {
         gCtx.save();
-        gCtx.font = 'bold ' + Math.max(12, guideCanvas.width * 0.04) + 'px Nunito';
-        gCtx.fillStyle = 'rgba(255,107,53,0.5)';
-        gCtx.fillText(String(idx + 1), mapX(stroke[0][0]) - 6, mapY(stroke[0][1]) - 8);
+        var sx = mapX(stroke[0][0]);
+        var sy = mapY(stroke[0][1]);
+        
+        // Circulito de fondo
+        gCtx.beginPath();
+        gCtx.arc(sx, sy, Math.max(12, guideCanvas.width * 0.03), 0, Math.PI * 2);
+        gCtx.fillStyle = '#fff';
+        gCtx.fill();
+        gCtx.lineWidth = 3;
+        gCtx.strokeStyle = 'rgba(200, 215, 230, 1)';
+        gCtx.stroke();
+
+        gCtx.font = 'bold ' + Math.max(12, guideCanvas.width * 0.035) + 'px Nunito';
+        gCtx.fillStyle = '#7a8b9e';
+        gCtx.textAlign = 'center';
+        gCtx.textBaseline = 'middle';
+        gCtx.fillText(String(idx + 1), sx, sy + 1);
         gCtx.restore();
     });
 
@@ -118,13 +175,15 @@ function playDemo() {
     instrEl.textContent = 'Mira el orden de los trazos';
     instrEl.className   = 'instruction thinking';
 
-    var strokes     = currentStrokes();
+    var rawStrokes  = currentStrokes();
+    var strokes     = rawStrokes.map(interpolateStroke);
     var strokeIndex = 0;
     var pointIndex  = 0;
-    var SPEED       = 18; // ms por punto
+    var SPEED       = 15; // ms por punto interpolado
 
     // Colores por trazo
     var colors = ['#e53935', '#1e88e5', '#43a047', '#fb8c00', '#8e24aa'];
+    var currentDemoPoints = [];
 
     function drawNextPoint() {
         if (strokeIndex >= strokes.length) {
@@ -137,46 +196,50 @@ function playDemo() {
         var color  = colors[strokeIndex % colors.length];
 
         if (pointIndex === 0) {
-            // Dibujar número de trazo
-            var sx = mapX(stroke[0][0]);
-            var sy = mapY(stroke[0][1]);
-            dCtx.save();
-            dCtx.beginPath();
-            dCtx.arc(sx, sy, Math.max(10, demoCanvas.width * 0.025), 0, Math.PI * 2);
-            dCtx.fillStyle = color;
-            dCtx.fill();
-            dCtx.fillStyle = '#fff';
-            dCtx.font = 'bold ' + Math.max(10, demoCanvas.width * 0.028) + 'px Nunito';
-            dCtx.textAlign = 'center';
-            dCtx.textBaseline = 'middle';
-            dCtx.fillText(String(strokeIndex + 1), sx, sy);
-            dCtx.restore();
-
+            currentDemoPoints = [];
             // Marcar dot activo
             document.querySelectorAll('.stroke-dot').forEach(function(d,i){
                 d.className = 'stroke-dot' + (i === strokeIndex ? ' current' : (i < strokeIndex ? ' done' : ''));
             });
-
-            dCtx.beginPath();
-            dCtx.lineWidth   = Math.max(6, demoCanvas.width * 0.022);
-            dCtx.lineCap     = 'round';
-            dCtx.lineJoin    = 'round';
-            dCtx.strokeStyle = color;
-            dCtx.moveTo(sx, sy);
         }
 
         if (pointIndex < stroke.length) {
-            var pt = stroke[pointIndex];
-            dCtx.lineTo(mapX(pt[0]), mapY(pt[1]));
-            dCtx.stroke();
-            dCtx.beginPath();
-            dCtx.moveTo(mapX(pt[0]), mapY(pt[1]));
+            currentDemoPoints.push(stroke[pointIndex]);
+            
+            dCtx.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
+            
+            // Dibujar trazos terminados
+            for (var s = 0; s < strokeIndex; s++) {
+                drawPerfectStroke(dCtx, strokes[s], colors[s % colors.length], 0.045);
+            }
+            // Dibujar trazo actual animado
+            if (currentDemoPoints.length > 0) {
+                drawPerfectStroke(dCtx, currentDemoPoints, color, 0.045);
+            }
+            
+            // Dibujar los números de trazo por encima
+            for (var s = 0; s <= strokeIndex; s++) {
+                var sx = mapX(strokes[s][0][0]);
+                var sy = mapY(strokes[s][0][1]);
+                dCtx.save();
+                dCtx.beginPath();
+                dCtx.arc(sx, sy, Math.max(10, demoCanvas.width * 0.025), 0, Math.PI * 2);
+                dCtx.fillStyle = colors[s % colors.length];
+                dCtx.fill();
+                dCtx.fillStyle = '#fff';
+                dCtx.font = 'bold ' + Math.max(10, demoCanvas.width * 0.028) + 'px Nunito';
+                dCtx.textAlign = 'center';
+                dCtx.textBaseline = 'middle';
+                dCtx.fillText(String(s + 1), sx, sy + 1);
+                dCtx.restore();
+            }
+
             pointIndex++;
             demoTimer = setTimeout(drawNextPoint, SPEED);
         } else {
             strokeIndex++;
             pointIndex = 0;
-            demoTimer = setTimeout(drawNextPoint, 350); // pausa entre trazos
+            demoTimer = setTimeout(drawNextPoint, 450); // pausa entre trazos
         }
     }
 
@@ -189,34 +252,88 @@ function stopDemo() {
     demoPlaying = false;
 }
 
-/* ── Dibujo del niño en traceCanvas ── */
+/* ── Dibujo del niño en traceCanvas (Crayón Mágico) ── */
 function getPos(e) {
     var rect = traceCanvas.getBoundingClientRect();
     var cx = (e.clientX !== undefined) ? e.clientX : e.pageX;
     var cy = (e.clientY !== undefined) ? e.clientY : e.pageY;
-    return { x: cx - rect.left, y: cy - rect.top };
+    var pressure = e.pressure !== undefined ? e.pressure : (e.force !== undefined ? e.force : 0.5);
+    return [ cx - rect.left, cy - rect.top, pressure ];
 }
 
 function onStart(e) {
     drawing = true;
     if (!hasDrawn) { hasDrawn = true; }
-    var p = getPos(e);
-    tCtx.beginPath();
-    tCtx.moveTo(p.x, p.y);
+    userStrokes.push([ getPos(e) ]);
+    renderUserStrokes();
 }
 function onEnd() {
     if (!drawing) return;
     drawing = false;
-    tCtx.beginPath();
     if (hasDrawn) checkTrace();
 }
 function onMove(e) {
     if (!drawing) return;
-    var p = getPos(e);
-    tCtx.lineTo(p.x, p.y);
-    tCtx.stroke();
-    tCtx.beginPath();
-    tCtx.moveTo(p.x, p.y);
+    userStrokes[userStrokes.length - 1].push(getPos(e));
+    renderUserStrokes();
+}
+
+/* ── Renderizado del efecto Crayón ── */
+function getCrayonPattern(color) {
+    if (patternCache[color]) return patternCache[color];
+    var pCanvas = document.createElement('canvas');
+    pCanvas.width = 128;
+    pCanvas.height = 128;
+    var pCtx = pCanvas.getContext('2d');
+    
+    pCtx.fillStyle = color;
+    pCtx.fillRect(0, 0, 128, 128);
+    
+    // Ruido para textura de cera
+    for (var i = 0; i < 3000; i++) {
+        pCtx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.1)';
+        pCtx.fillRect(Math.random() * 128, Math.random() * 128, 2, 2);
+    }
+    
+    patternCache[color] = tCtx.createPattern(pCanvas, 'repeat');
+    return patternCache[color];
+}
+
+function renderUserStrokes() {
+    tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
+    
+    tCtx.shadowColor = 'rgba(0,0,0,0.15)';
+    tCtx.shadowBlur = 4;
+    tCtx.shadowOffsetX = 2;
+    tCtx.shadowOffsetY = 2;
+
+    userStrokes.forEach(function(points) {
+        if (points.length === 0) return;
+        
+        var strokeShape = perfectFreehand.getStroke(points, {
+            size: Math.max(16, traceCanvas.width * 0.05), // Grueso e infantil
+            thinning: 0.25,
+            smoothing: 0.7,
+            streamline: 0.6,
+            simulatePressure: true
+        });
+        
+        if (strokeShape.length === 0) return;
+
+        tCtx.beginPath();
+        tCtx.moveTo(strokeShape[0][0], strokeShape[0][1]);
+        for (var i = 1; i < strokeShape.length - 1; i++) {
+            var p0 = strokeShape[i];
+            var p1 = strokeShape[i + 1];
+            tCtx.quadraticCurveTo(p0[0], p0[1], (p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2);
+        }
+        tCtx.closePath();
+        
+        tCtx.fillStyle = getCrayonPattern(currentTraceColor);
+        tCtx.fill();
+    });
+    
+    tCtx.shadowColor = 'transparent'; // Restablecer sombra
 }
 
 traceCanvas.addEventListener('mousedown',  onStart);
@@ -273,6 +390,7 @@ function checkTrace() {
 
 /* ── Limpiar trazo del niño ── */
 function clearTrace() {
+    userStrokes = [];
     tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
     hasDrawn = false;
     instrEl.textContent = '¡Ahora inténtalo tú! Traza encima';
@@ -297,6 +415,9 @@ function loadLetter() {
     stopDemo();
     dCtx.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
     tCtx.clearRect(0, 0, traceCanvas.width, traceCanvas.height);
+    userStrokes  = [];
+    // Escoger un color aleatorio para el crayón en cada letra nueva
+    currentTraceColor = crayonColors[Math.floor(Math.random() * crayonColors.length)];
     hasDrawn     = false;
     demoPlaying  = false;
     var char     = currentLetterChar();
