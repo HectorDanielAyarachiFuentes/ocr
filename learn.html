@@ -31,10 +31,12 @@
             </a>
         </div>
         <div class="top-center">
+            <button class="mobile-only btn-demo-top" onclick="playDemo()"><i class="ph-bold ph-play"></i></button>
             <div class="case-toggle">
                 <button id="btn-upper" class="active" onclick="setCase('upper')">ABC</button>
                 <button id="btn-lower" onclick="setCase('lower')">abc</button>
             </div>
+            <button class="mobile-only btn-clear-top" onclick="clearTrace()"><i class="ph-bold ph-trash"></i></button>
         </div>
         <div class="top-right">
             <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
@@ -52,11 +54,9 @@
                 </div>
         
                 <div class="letter-nav">
-                    <button class="mobile-only btn-demo-inline" onclick="playDemo()"><i class="ph-bold ph-play"></i></button>
                     <button onclick="prevLetter()"><i class="ph-bold ph-caret-left"></i></button>
                     <div class="current-letter" id="currentLetter">A</div>
                     <button onclick="nextLetter()"><i class="ph-bold ph-caret-right"></i></button>
-                    <button class="mobile-only btn-clear-inline" onclick="clearTrace()"><i class="ph-bold ph-trash"></i></button>
                 </div>
 
                 <button class="mobile-only btn-speak-mobile" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i></button>
