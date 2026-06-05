@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- Fondo redondeado estilo app iOS (Lavender) -->
+  <rect x="16" y="24" width="224" height="224" rx="64" fill="#7C3AED" /> <!-- Sombra del icono -->
+  <rect x="16" y="16" width="224" height="224" rx="64" fill="#A78BFA" /> <!-- Fondo principal -->
+
+  <!-- Lápiz animado (Rotado) -->
+  <g transform="translate(128, 136) rotate(-45) translate(-128, -128)">
+    
+    <!-- Punta de madera -->
+    <path d="M80 144 L176 144 L128 208 Z" fill="#FDE68A" />
+    
+    <!-- Mina (Tinta color oscuro) -->
+    <path d="M112 186.5 L144 186.5 L128 208 Z" fill="#334155" />
+
+    <!-- Cuerpo del lápiz -->
+    <rect x="80" y="64" width="96" height="80" fill="#FBBF24" />
+    <!-- Brillo del lápiz (3D effect) -->
+    <rect x="112" y="64" width="32" height="80" fill="#FCD34D" />
+
+    <!-- Anillo de metal (Ferrule) -->
+    <rect x="80" y="64" width="96" height="20" fill="#CBD5E1" />
+    <!-- Líneas del metal -->
+    <rect x="80" y="68" width="96" height="4" fill="#94A3B8" />
+    <rect x="80" y="76" width="96" height="4" fill="#94A3B8" />
+
+    <!-- Goma de borrar -->
+    <path d="M80 64 Q 80 32 128 32 Q 176 32 176 64 Z" fill="#FB7185" />
+    <path d="M112 64 Q 112 36 128 32 Q 144 36 144 64 Z" fill="#FDA4AF" opacity="0.5" />
+  </g>
+
+  <!-- Destellos mágicos (Sparkles) -->
+  <path d="M40 70 Q 56 70 56 54 Q 56 70 72 70 Q 56 70 56 86 Q 56 70 40 70 Z" fill="#FFFFFF" opacity="0.9" />
+  <path d="M180 50 Q 192 50 192 38 Q 192 50 204 50 Q 192 50 192 62 Q 192 50 180 50 Z" fill="#FDE047" opacity="0.9" />
+  <path d="M190 180 Q 200 180 200 170 Q 200 180 210 180 Q 200 180 200 190 Q 200 180 190 180 Z" fill="#34D399" opacity="0.9" />
+</svg>
