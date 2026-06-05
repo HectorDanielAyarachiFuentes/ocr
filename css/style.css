@@ -25,7 +25,10 @@
     
     --surface-color: #FFFFFF;
     --border-color: #E2E8F0; 
-    --canvas-border: #CBD5E1; 
+    --canvas-border: #94A3B8; 
+    
+    --line-color: rgba(226, 232, 240, 0.5);
+    --baseline-color: rgba(148, 163, 184, 0.2);
     
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
     --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
@@ -55,20 +58,135 @@ body {
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
     height: 100dvh;
-    padding: 10px 16px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode {
+    --bg-color: #0F172A; 
+    --text-primary: #F8FAFC; 
+    --text-muted: #94A3B8; 
+    
+    --primary-color: #8B5CF6; 
+    --primary-shadow: #6D28D9; 
+    
+    --success-color: #10B981; 
+    --success-shadow: #047857; 
+    
+    --danger-color: #F43F5E; 
+    --danger-shadow: #BE123C; 
+    
+    --info-color: #0EA5E9; 
+    --info-shadow: #0369A1; 
+
+    --accent-color: #F59E0B;
+    --accent-shadow: #B45309;
+    
+    --surface-color: #1E293B; 
+    --border-color: #334155; 
+    --canvas-border: #475569; 
+    
+    --line-color: transparent;
+    --baseline-color: transparent;
+}
+
+/* ── Top Bar ── */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 10px 20px;
+    background: var(--surface-color);
+    border-bottom: 2px solid var(--border-color);
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+}
+
+.app-logo {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
     gap: 8px;
+}
+
+/* Botón de Tema */
+.theme-toggle {
+    background: var(--surface-color);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.3rem;
+    box-shadow: 0 3px 0 var(--border-color);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--primary-color);
+    padding: 0;
+}
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 var(--border-color);
+}
+.theme-toggle:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 var(--border-color);
+}
+
+/* ── App Layout ── */
+.app-layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+    padding: 12px;
+    gap: 12px;
+}
+
+@media (min-width: 768px) {
+    .app-layout {
+        flex-direction: row;
+        padding: 20px;
+        gap: 24px;
+    }
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    .sidebar {
+        width: 340px;
+        justify-content: center;
+    }
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
 }
 
 /* ── Encabezado ── */
 header {
     text-align: center;
-    flex-shrink: 0;
     width: 100%;
     max-width: 640px;
-    padding: 10px 0 5px 0;
 }
 .header-content {
     display: flex;
@@ -123,18 +241,17 @@ h1 {
     transform: translateX(4px);
 }
 
-/* ── Área de dibujo ── */
+/* Área de dibujo */
 .canvas-wrapper {
     position: relative;
-    flex: 1 1 0;
+    flex: 1;
     width: 100%;
-    max-width: 640px;
     min-height: 0;
     border-radius: var(--radius-md);
     overflow: hidden;
     background: var(--surface-color);
-    border: 4px solid var(--border-color);
-    box-shadow: var(--shadow-lg);
+    border: 4px solid var(--canvas-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -170,12 +287,10 @@ h1 {
 }
 
 /* Modo Expandido */
-body.expanded-mode { padding: 8px; gap: 8px; }
-body.expanded-mode header,
-body.expanded-mode .controls,
-body.expanded-mode .status-bar { display: none !important; }
+body.expanded-mode { padding: 0; gap: 0; }
+body.expanded-mode .sidebar, body.expanded-mode .top-bar { display: none !important; }
+body.expanded-mode .app-layout { padding: 8px; }
 body.expanded-mode .canvas-wrapper { max-width: 100%; flex: 1; border-width: 6px; }
-body.expanded-mode .result-area { max-width: 100%; padding: 12px; }
 body.expanded-mode #output { font-size: clamp(3rem, 15vw, 5rem); }
 
 /* Líneas guía estilo cuaderno suave */
@@ -185,7 +300,7 @@ body.expanded-mode #output { font-size: clamp(3rem, 15vw, 5rem); }
     inset: 0;
     background-image: repeating-linear-gradient(
         transparent 0px, transparent 59px,
-        rgba(226, 232, 240, 0.5) 59px, rgba(226, 232, 240, 0.5) 61px
+        var(--line-color) 59px, var(--line-color) 61px
     );
     pointer-events: none;
     z-index: 0;

@@ -23,48 +23,59 @@
     <link rel="stylesheet" href="./css/learn.css">
 </head>
 <body>
-
-    <header>
+    <div class="top-bar">
         <a href="./index.html" class="back-btn">
             <span class="icon"><i class="ph-bold ph-caret-left"></i></span>
             <span class="text">Volver</span>
         </a>
-        <div class="header-center" style="gap: 12px;">
-            <h1><i class="ph-bold ph-pencil"></i> Aprende</h1>
-            <div class="stars-counter" id="starsCounter"><i class="ph-fill ph-star"></i> 0</div>
+        <div class="app-logo"><i class="ph-bold ph-pencil"></i> Aprende</div>
+        <div class="header-right">
+            <div class="case-toggle">
+                <button id="btn-upper" class="active" onclick="setCase('upper')">ABC</button>
+                <button id="btn-lower" onclick="setCase('lower')">abc</button>
+            </div>
+            <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+                <i class="ph-fill ph-moon"></i>
+            </button>
         </div>
-        <div class="case-toggle">
-            <button id="btn-upper" class="active" onclick="setCase('upper')">ABC</button>
-            <button id="btn-lower" onclick="setCase('lower')">abc</button>
-        </div>
-    </header>
-
-    <div class="letter-nav">
-        <button id="btn-prev" onclick="prevLetter()"><i class="ph-bold ph-caret-left"></i></button>
-        <div class="current-letter" id="currentLetter">A</div>
-        <button id="btn-next" onclick="nextLetter()"><i class="ph-bold ph-caret-right"></i></button>
     </div>
 
-    <div class="canvas-area" id="canvasArea">
-        <button class="btn-expand" id="btn-expand" title="Ampliar área" onclick="toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
-        <!-- capa 1: guía con la letra en punteado -->
-        <canvas id="guideCanvas"></canvas>
-        <!-- capa 2: animación de demostración -->
-        <canvas id="demoCanvas"></canvas>
-        <!-- capa 3: dibujo del niño -->
-        <canvas id="traceCanvas"></canvas>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="stars-container" style="display: flex; justify-content: center; width: 100%;">
+                <div class="stars-counter" id="starsCounter"><i class="ph-fill ph-star"></i> 0</div>
+            </div>
+
+            <div class="letter-nav">
+                <button id="btn-prev" onclick="prevLetter()"><i class="ph-bold ph-caret-left"></i></button>
+                <div class="current-letter" id="currentLetter">A</div>
+                <button id="btn-next" onclick="nextLetter()"><i class="ph-bold ph-caret-right"></i></button>
+            </div>
+        
+            <div class="instruction" id="instruction">Primero mira cómo se hace</div>
+        
+            <div class="controls-grid">
+                <button id="btn-demo"  onclick="playDemo()"><i class="ph-bold ph-play"></i> Ver cómo</button>
+                <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> Escuchar</button>
+                <button id="btn-clear" onclick="clearTrace()"><i class="ph-bold ph-trash"></i> Borrar</button>
+                <button id="btn-next2" onclick="nextLetter()">Siguiente <i class="ph-bold ph-arrow-right"></i></button>
+            </div>
+        
+            <div class="stroke-progress" id="strokeProgress"></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="canvas-area" id="canvasArea">
+                <button class="btn-expand" id="btn-expand" title="Ampliar área" onclick="toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
+                <!-- capa 1: guía con la letra en punteado -->
+                <canvas id="guideCanvas"></canvas>
+                <!-- capa 2: animación de demostración -->
+                <canvas id="demoCanvas"></canvas>
+                <!-- capa 3: dibujo del niño -->
+                <canvas id="traceCanvas"></canvas>
+            </div>
+        </main>
     </div>
-
-    <div class="instruction" id="instruction">Primero mira cómo se hace</div>
-
-    <div class="controls">
-        <button id="btn-demo"  onclick="playDemo()"><i class="ph-bold ph-play"></i> Ver cómo</button>
-        <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> Escuchar</button>
-        <button id="btn-clear" onclick="clearTrace()"><i class="ph-bold ph-trash"></i> Borrar</button>
-        <button id="btn-next2" onclick="nextLetter()">Siguiente <i class="ph-bold ph-arrow-right"></i></button>
-    </div>
-
-    <div class="stroke-progress" id="strokeProgress"></div>
 
     <!-- Librerías de efectos mágicos y confeti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -72,6 +83,7 @@
     <script src="https://unpkg.com/perfect-freehand"></script>
     <script>window.perfectFreehand = exports;</script>
     
+    <script src="./js/ui/theme.js"></script>
     <script src="./js/offline/letters.js"></script>
     <script src="./js/ui/audio.js"></script>
     <script src="./js/ui/drawing.js"></script>

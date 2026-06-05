@@ -34,37 +34,50 @@
 </head>
 
 <body>
-
-    <header>
-        <div class="header-content">
-            <h1><i class="ph-bold ph-pencil"></i> ¡Dibuja una letra o número! <i class="ph-bold ph-list-numbers"></i></h1>
-            <p class="subtitle">Escribe con el dedo o el mouse — la IA adivina sola</p>
-            <a href="./learn.html" class="learn-link">
-                <span><i class="ph-bold ph-book-open-text"></i> Aprender a escribir</span>
-                <span class="arrow"><i class="ph-bold ph-arrow-right"></i></span>
-            </a>
-        </div>
-    </header>
-
-    <div class="canvas-wrapper" id="canvasWrapper">
-        <button class="btn-expand" id="btn-expand" title="Ampliar área" onclick="toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
-        <canvas id="canvas" aria-label="Área de dibujo"></canvas>
-        <div class="canvas-hint" id="canvasHint">¡Dibuja aquí una letra o número! <i class="ph-bold ph-pen-nib"></i></div>
-        <div class="progress-bar" id="progressBar"></div>
+    <div class="top-bar">
+        <div class="app-logo"><i class="ph-bold ph-magic-wand"></i> Dibuja y Adivina</div>
+        <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+            <i class="ph-fill ph-moon"></i>
+        </button>
     </div>
 
-    <div class="result-area">
-        <span class="result-label">La letra o número es:</span>
-        <div id="output" class="empty">—</div>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <header>
+                <div class="header-content">
+                    <h1><i class="ph-bold ph-pencil"></i> ¡Dibuja! <i class="ph-bold ph-list-numbers"></i></h1>
+                    <p class="subtitle">La IA adivina sola</p>
+                    <a href="./learn.html" class="learn-link">
+                        <span><i class="ph-bold ph-book-open-text"></i> Aprender a escribir</span>
+                        <span class="arrow"><i class="ph-bold ph-arrow-right"></i></span>
+                    </a>
+                </div>
+            </header>
+        
+            <div class="result-area">
+                <span class="result-label">Resultado:</span>
+                <div id="output" class="empty">—</div>
+            </div>
+        
+            <div class="controls">
+                <button id="btn-clear" onclick="clearCanvas()"><i class="ph-bold ph-trash"></i> Borrar</button>
+                <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> Escuchar</button>
+            </div>
+        
+            <div class="status-bar" id="statusBar">Esperando trazo…</div>
+        </aside>
+
+        <main class="main-content">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <button class="btn-expand" id="btn-expand" title="Ampliar área" onclick="toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
+                <canvas id="canvas" aria-label="Área de dibujo"></canvas>
+                <div class="canvas-hint" id="canvasHint">¡Dibuja aquí una letra o número! <i class="ph-bold ph-pen-nib"></i></div>
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </main>
     </div>
 
-    <div class="controls">
-        <button id="btn-clear" onclick="clearCanvas()"><i class="ph-bold ph-trash"></i> Borrar</button>
-        <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> Escuchar</button>
-    </div>
-
-    <div class="status-bar" id="statusBar">Esperando trazo…</div>
-
+    <script src="./js/ui/theme.js"></script>
     <script src="./js/online/google_api.js"></script>
     <script src="./js/ui/app.js"></script>
 </body>
