@@ -11,6 +11,7 @@ var letterOrder  = Object.keys(LETTERS_UPPER);
 var currentIndex = 0;
 var demoPlaying  = false;
 var demoTimer    = null;
+var letterTimer  = null; // Evita acumular timeouts si se hace clic muy rápido
 
 // Nuevas variables para el crayón mágico
 var userStrokes = [];
@@ -426,7 +427,8 @@ function loadLetter() {
     instrEl.className    = 'instruction';
     drawGuide();
     // Auto-play demo y voz cuando cambia la letra
-    setTimeout(function() {
+    if (letterTimer) clearTimeout(letterTimer);
+    letterTimer = setTimeout(function() {
         speakText(char);
         playDemo();
     }, 400);
@@ -454,6 +456,7 @@ function setCase(c) {
 /* ── Motor de Voz (Text-to-Speech) ── */
 function speakText(text) {
     if (!text) return;
+    window.speechSynthesis.cancel(); // Cancela cualquier audio previo en la cola
     const mensaje = new SpeechSynthesisUtterance(text);
     mensaje.lang = 'es-ES';
     mensaje.rate = 1;
