@@ -60,7 +60,8 @@ window.HF_OCR = {
         
         try {
             // El pipeline espera una URL de imagen o un objeto de imagen.
-            let result = await this.recognizer(imageUrl);
+            // Añadimos num_beams para forzar al modelo a buscar la palabra con más sentido
+            let result = await this.recognizer(imageUrl, { max_new_tokens: 30, num_beams: 4 });
             if (result && result.length > 0 && result[0].generated_text) {
                 let rawText = result[0].generated_text.trim();
                 console.log("TrOCR predicción cruda:", rawText);

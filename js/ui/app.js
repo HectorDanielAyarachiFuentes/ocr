@@ -189,38 +189,34 @@ window.appContext = (function() {
                 minX = 0; minY = 0; maxX = canvas.width; maxY = canvas.height; 
             }
             
-            // Añadir margen del dibujo (padding)
+            // Añadir margen del dibujo (padding ajustado al texto, NO cuadrado)
             let strokeW = maxX - minX;
             let strokeH = maxY - minY;
-            let size = Math.max(strokeW, strokeH);
-            let padding = Math.max(20, size * 0.2);
-            let finalSize = size + padding * 2;
-            
-            // Para TrOCR, un tamaño consistente como 384x384 o 224x224 ayuda
-            let targetSize = Math.max(finalSize, 224);
+            let paddingX = Math.max(20, strokeW * 0.1);
+            let paddingY = Math.max(20, strokeH * 0.2);
             
             var tempCanvas = document.createElement('canvas');
-            tempCanvas.width = targetSize;
-            tempCanvas.height = targetSize;
+            tempCanvas.width = strokeW + paddingX * 2;
+            tempCanvas.height = strokeH + paddingY * 2;
             var tempCtx = tempCanvas.getContext('2d');
             
             // Fondo blanco indispensable
             tempCtx.fillStyle = '#ffffff';
-            tempCtx.fillRect(0, 0, targetSize, targetSize);
+            tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             
             // Calcular desplazamiento para centrar el dibujo en el nuevo lienzo
-            let offsetX = (targetSize - strokeW) / 2 - minX;
-            let offsetY = (targetSize - strokeH) / 2 - minY;
+            let offsetX = paddingX - minX;
+            let offsetY = paddingY - minY;
             
             // En lugar de copiar el canvas (que puede tener trazos blancos por el modo oscuro),
             // redibujamos los trazos explícitamente en color negro puro para el OCR
             tempCtx.strokeStyle = '#000000';
             
-            // TRUCO DE PRECISIÓN: TrOCR fue entrenado con bolígrafos reales. 
-            // Si le mandamos un trazo muy grueso (marcador digital), se confunde.
-            // Hacemos que el trazo oculto sea más fino que el visual para que la IA lo lea mejor.
-            let originalWidth = Math.max(10, canvas.width * 0.028);
-            tempCtx.lineWidth = Math.max(3, originalWidth * 0.4); // 60% más fino
+            // TRUCO DE PRECISIÓN DEFINITIVO (La Magia): 
+            // TrOCR-printed fue entrenado con texto de imprenta (como Arial o Roboto).
+            // En tipografía real, el grosor de la línea es aprox un 8% al 10% de la altura de la letra.
+            // Ajustamos el pincel para imitar matemáticamente una fuente impresa perfecta.
+            tempCtx.lineWidth = Math.max(5, strokeH * 0.09); 
             
             tempCtx.lineCap = 'round';
             tempCtx.lineJoin = 'round';
