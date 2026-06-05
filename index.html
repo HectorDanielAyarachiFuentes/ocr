@@ -14,83 +14,179 @@
     <meta name="keywords" content="OCR, dibujo, IA, aprendizaje, letras, números, tesseract, reconocimiento de escritura, educación">
     <meta name="author" content="HectorDanielAyarachiFuentes">
     
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="¡Dibuja y Adivina! - IA de Escritura">
-    <meta property="og:description" content="Dibuja letras y números en pantalla y deja que la IA los reconozca al instante.">
-    <meta property="og:image" content="./assets/favicon.svg">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:title" content="¡Dibuja y Adivina! - IA de Escritura">
-    <meta property="twitter:description" content="Reconocimiento inteligente de trazos hecho fácil y divertido.">
-    <meta property="twitter:image" content="./assets/favicon.svg">
-
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Estilos combinados -->
     <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/learn.css">
+    
+    <style>
+        .view-section {
+            display: none;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+        }
+        .view-section.active {
+            display: flex;
+        }
+        
+        /* Ajuste para que los top-bar no causen problemas de altura extra */
+        #app-root {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            flex: 1;
+        }
+    </style>
+
+    <!-- Librerías Externas -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>var exports = {};</script>
+    <script src="https://unpkg.com/perfect-freehand"></script>
+    <script>window.perfectFreehand = exports;</script>
+
     <!-- Motor Offline IA Local (Transformers.js) -->
     <script type="module" src="./js/offline/hf_bridge.js"></script>
 </head>
 
 <body>
-    <div class="top-bar">
-        <div class="top-left">
-            <div class="app-logo desktop-only"><i class="ph-bold ph-magic-wand"></i> Dibuja y Adivina</div>
-            <h1 class="mobile-only"><i class="ph-bold ph-pencil"></i> ¡Dibuja!</h1>
-        </div>
-        <div class="top-center mobile-only">
-            <a href="./learn.html" class="learn-link nav-btn-sm">
-                <i class="ph-bold ph-book-open-text"></i> Aprender
-            </a>
-        </div>
-        <div class="top-right">
-            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
-                <i class="ph-fill ph-moon"></i>
-            </button>
-        </div>
-    </div>
-
-    <div class="app-layout">
-        <aside class="sidebar">
-            <header>
-                <div class="header-content">
-                    <h1><i class="ph-bold ph-pencil"></i> ¡Dibuja! <i class="ph-bold ph-list-numbers"></i></h1>
-                    <p class="subtitle">La IA adivina sola</p>
-                    <a href="./learn.html" class="learn-link">
-                        <span><i class="ph-bold ph-book-open-text"></i> Aprender a escribir</span>
-                        <span class="arrow"><i class="ph-bold ph-arrow-right"></i></span>
+    <div id="app-root">
+        <!-- VISTA: DIBUJAR (OCR) -->
+        <div id="view-draw" class="view-section active">
+            <div class="top-bar">
+                <div class="top-left">
+                    <div class="app-logo desktop-only"><i class="ph-bold ph-magic-wand"></i> Dibuja y Adivina</div>
+                    <h1 class="mobile-only"><i class="ph-bold ph-pencil"></i> ¡Dibuja!</h1>
+                </div>
+                <div class="top-center mobile-only">
+                    <a href="#learn" class="learn-link nav-btn-sm">
+                        <i class="ph-bold ph-book-open-text"></i> Aprender
                     </a>
                 </div>
-            </header>
-        
-            <div class="result-and-controls">
-                <div class="result-area">
-                    <span class="result-label">Resultado:</span>
-                    <div id="output" class="empty">—</div>
-                </div>
-                <div class="controls">
-                    <button id="btn-clear" onclick="clearCanvas()"><i class="ph-bold ph-trash"></i> <span class="text">Borrar</span></button>
-                    <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> <span class="text">Escuchar</span></button>
+                <div class="top-right">
+                    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+                        <i class="ph-fill ph-moon"></i>
+                    </button>
                 </div>
             </div>
-        
-            <div class="status-bar" id="statusBar">Esperando trazo…</div>
-        </aside>
 
-        <main class="main-content">
-            <div class="canvas-wrapper" id="canvasWrapper">
-                <button class="btn-expand" id="btn-expand" title="Ampliar área" onclick="toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
-                <canvas id="canvas" aria-label="Área de dibujo"></canvas>
-                <div class="canvas-hint" id="canvasHint">¡Dibuja aquí una letra o número! <i class="ph-bold ph-pen-nib"></i></div>
-                <div class="progress-bar" id="progressBar"></div>
+            <div class="app-layout">
+                <aside class="sidebar">
+                    <header>
+                        <div class="header-content">
+                            <h1><i class="ph-bold ph-pencil"></i> ¡Dibuja! <i class="ph-bold ph-list-numbers"></i></h1>
+                            <p class="subtitle">La IA adivina sola</p>
+                            <a href="#learn" class="learn-link">
+                                <span><i class="ph-bold ph-book-open-text"></i> Aprender a escribir</span>
+                                <span class="arrow"><i class="ph-bold ph-arrow-right"></i></span>
+                            </a>
+                        </div>
+                    </header>
+                
+                    <div class="result-and-controls">
+                        <div class="result-area">
+                            <span class="result-label">Resultado:</span>
+                            <div id="output" class="empty">—</div>
+                        </div>
+                        <div class="controls">
+                            <button id="btn-clear" onclick="appContext.clearCanvas()"><i class="ph-bold ph-trash"></i> <span class="text">Borrar</span></button>
+                            <button id="btn-speak" onclick="appContext.replaySpeech()"><i class="ph-bold ph-speaker-high"></i> <span class="text">Escuchar</span></button>
+                        </div>
+                    </div>
+                
+                    <div class="status-bar" id="statusBar">Esperando trazo…</div>
+                </aside>
+
+                <main class="main-content">
+                    <div class="canvas-wrapper" id="canvasWrapper">
+                        <button class="btn-expand" id="btn-expand-draw" title="Ampliar área" onclick="appContext.toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
+                        <canvas id="canvas" aria-label="Área de dibujo"></canvas>
+                        <div class="canvas-hint" id="canvasHint">¡Dibuja aquí una letra o número! <i class="ph-bold ph-pen-nib"></i></div>
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                </main>
             </div>
-        </main>
+        </div>
+
+        <!-- VISTA: APRENDER -->
+        <div id="view-learn" class="view-section">
+            <div class="top-bar">
+                <div class="top-left">
+                    <a href="#draw" class="back-btn">
+                        <span class="icon"><i class="ph-bold ph-caret-left"></i></span>
+                        <span class="text">Volver</span>
+                    </a>
+                </div>
+                <div class="top-center">
+                    <button class="mobile-only btn-demo-top" onclick="learnContext.playDemo()"><i class="ph-bold ph-play"></i></button>
+                    <div class="case-toggle">
+                        <button id="btn-upper" class="active" onclick="learnContext.setCase('upper')">ABC</button>
+                        <button id="btn-lower" onclick="learnContext.setCase('lower')">abc</button>
+                    </div>
+                    <button class="mobile-only btn-clear-top" onclick="learnContext.clearTrace()"><i class="ph-bold ph-trash"></i></button>
+                </div>
+                <div class="top-right">
+                    <button id="themeToggleLearn" class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+                        <i class="ph-fill ph-moon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="app-layout">
+                <aside class="sidebar">
+                    <div class="nav-score-row">
+                        <div class="stars-counter" id="starsCounter">
+                            <i class="ph-fill ph-star"></i> <span id="score">0</span>
+                        </div>
+                
+                        <div class="letter-nav">
+                            <button onclick="learnContext.prevLetter()"><i class="ph-bold ph-caret-left"></i></button>
+                            <div class="current-letter" id="currentLetter">A</div>
+                            <button onclick="learnContext.nextLetter()"><i class="ph-bold ph-caret-right"></i></button>
+                        </div>
+
+                        <button class="mobile-only btn-speak-mobile" onclick="learnContext.replaySpeech()"><i class="ph-bold ph-speaker-high"></i></button>
+                    </div>
+
+                    <div class="instruction" id="instruction">Primero mira cómo se hace</div>
+                
+                    <div class="controls-grid">
+                        <button id="btn-demo"  onclick="learnContext.playDemo()"><i class="ph-bold ph-play"></i> <span class="btn-text">Ver cómo</span></button>
+                        <button id="btn-speak-learn" onclick="learnContext.replaySpeech()"><i class="ph-bold ph-speaker-high"></i> <span class="btn-text">Escuchar</span></button>
+                        <button id="btn-clear-learn" onclick="learnContext.clearTrace()"><i class="ph-bold ph-trash"></i> <span class="btn-text">Borrar</span></button>
+                        <button id="btn-next2" onclick="learnContext.nextLetter()"><span class="btn-text">Siguiente</span> <i class="ph-bold ph-arrow-right"></i></button>
+                    </div>
+                
+                    <div class="stroke-progress" id="strokeProgress"></div>
+                </aside>
+
+                <main class="main-content">
+                    <div class="canvas-area" id="canvasArea">
+                        <button class="btn-expand" id="btn-expand-learn" title="Ampliar área" onclick="learnContext.toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
+                        <canvas id="guideCanvas"></canvas>
+                        <canvas id="demoCanvas"></canvas>
+                        <canvas id="traceCanvas"></canvas>
+                    </div>
+                </main>
+            </div>
+        </div>
     </div>
 
+    <!-- Scripts Base -->
     <script src="./js/ui/theme.js"></script>
+    <script src="./js/ui/router.js"></script>
+    
+    <!-- Scripts de Vista Dibujar -->
     <script src="./js/online/google_api.js"></script>
     <script src="./js/ui/app.js"></script>
-</body>
 
+    <!-- Scripts de Vista Aprender -->
+    <script src="./js/offline/letters.js"></script>
+    <script src="./js/ui/audio.js"></script>
+    <script src="./js/ui/learn_bundle.js"></script>
+</body>
 </html>
