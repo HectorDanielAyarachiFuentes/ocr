@@ -24,7 +24,7 @@ window.HF_OCR = {
 
         try {
             // Cargar pipeline con callback de progreso para ver la descarga
-            this.recognizer = await pipeline('image-to-text', 'Xenova/trocr-small-handwritten', {
+            this.recognizer = await pipeline('image-to-text', 'Xenova/trocr-small-printed', {
                 progress_callback: (info) => {
                     if (statusBar && info.status === 'progress') {
                         // info.progress es el porcentaje (0 a 100)

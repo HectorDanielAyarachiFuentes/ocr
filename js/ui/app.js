@@ -212,9 +212,32 @@ window.appContext = (function() {
             let offsetX = (targetSize - strokeW) / 2 - minX;
             let offsetY = (targetSize - strokeH) / 2 - minY;
             
-            // Usamos drawImage que dibujará el canvas original desplazado.
-            // Al ser el canvas original transparente, solo se pegan los trazos sobre el blanco.
-            tempCtx.drawImage(canvas, offsetX, offsetY);
+            // En lugar de copiar el canvas (que puede tener trazos blancos por el modo oscuro),
+            // redibujamos los trazos explícitamente en color negro puro para el OCR
+            tempCtx.strokeStyle = '#000000';
+            
+            // TRUCO DE PRECISIÓN: TrOCR fue entrenado con bolígrafos reales. 
+            // Si le mandamos un trazo muy grueso (marcador digital), se confunde.
+            // Hacemos que el trazo oculto sea más fino que el visual para que la IA lo lea mejor.
+            let originalWidth = Math.max(10, canvas.width * 0.028);
+            tempCtx.lineWidth = Math.max(3, originalWidth * 0.4); // 60% más fino
+            
+            tempCtx.lineCap = 'round';
+            tempCtx.lineJoin = 'round';
+            
+            for (let i = 0; i < strokes.length; i++) {
+                let s = strokes[i];
+                let xs = s[0];
+                let ys = s[1];
+                if (xs.length > 0) {
+                    tempCtx.beginPath();
+                    tempCtx.moveTo(xs[0] + offsetX, ys[0] + offsetY);
+                    for (let j = 1; j < xs.length; j++) {
+                        tempCtx.lineTo(xs[j] + offsetX, ys[j] + offsetY);
+                    }
+                    tempCtx.stroke();
+                }
+            }
             
             var imgUrl = tempCanvas.toDataURL('image/png');
             
