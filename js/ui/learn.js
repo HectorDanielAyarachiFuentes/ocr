@@ -54,15 +54,15 @@ function celebrate() {
     // Sumar estrellita
     starsEarned++;
     var counterEl = document.getElementById('starsCounter');
-    if (counterEl) counterEl.textContent = '⭐ ' + starsEarned;
+    if (counterEl) counterEl.innerHTML = '<i class="ph-fill ph-star"></i> ' + starsEarned;
 
-    instrEl.textContent = '¡Muy bien! 🎉';
+    instrEl.innerHTML = '¡Muy bien! <i class="ph-bold ph-confetti"></i>';
     instrEl.className   = 'instruction success';
     
     // Animación de estrellita original de la interfaz
     var el = document.createElement('div');
     el.className = 'celebrate';
-    el.textContent = '⭐';
+    el.innerHTML = '<i class="ph-fill ph-star"></i>';
     document.body.appendChild(el);
     setTimeout(function() {
         if (el.parentNode) el.parentNode.removeChild(el);
@@ -122,10 +122,10 @@ function toggleExpand() {
     document.body.classList.toggle('expanded-mode');
     const btn = document.getElementById('btn-expand');
     if (document.body.classList.contains('expanded-mode')) {
-        btn.textContent = '⛶'; 
+        btn.innerHTML = '<i class="ph-bold ph-corners-in"></i>'; 
         btn.title = 'Contraer área';
     } else {
-        btn.textContent = '⛶';
+        btn.innerHTML = '<i class="ph-bold ph-corners-out"></i>';
         btn.title = 'Ampliar área';
     }
     if (typeof resizeCanvases === 'function') resizeCanvases();

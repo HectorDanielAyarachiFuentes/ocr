@@ -19,18 +19,19 @@
     <meta property="og:image" content="./assets/favicon.png">
 
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="./css/learn.css">
 </head>
 <body>
 
     <header>
         <a href="./index.html" class="back-btn">
-            <span class="icon">←</span>
+            <span class="icon"><i class="ph-bold ph-caret-left"></i></span>
             <span class="text">Volver</span>
         </a>
         <div class="header-center" style="gap: 12px;">
-            <h1>✏️ Aprende</h1>
-            <div class="stars-counter" id="starsCounter" style="font-size: 1.1rem; font-weight: bold; background: #FFF3E0; padding: 4px 10px; border-radius: 20px; border: 2px solid #FFB300; color: #FF8F00; box-shadow: 0 2px 0 rgba(255,179,0,0.3);">⭐ 0</div>
+            <h1><i class="ph-bold ph-pencil"></i> Aprende</h1>
+            <div class="stars-counter" id="starsCounter"><i class="ph-fill ph-star"></i> 0</div>
         </div>
         <div class="case-toggle">
             <button id="btn-upper" class="active" onclick="setCase('upper')">ABC</button>
@@ -39,13 +40,13 @@
     </header>
 
     <div class="letter-nav">
-        <button id="btn-prev" onclick="prevLetter()">‹</button>
+        <button id="btn-prev" onclick="prevLetter()"><i class="ph-bold ph-caret-left"></i></button>
         <div class="current-letter" id="currentLetter">A</div>
-        <button id="btn-next" onclick="nextLetter()">›</button>
+        <button id="btn-next" onclick="nextLetter()"><i class="ph-bold ph-caret-right"></i></button>
     </div>
 
     <div class="canvas-area" id="canvasArea">
-        <button class="btn-expand" id="btn-expand" title="Ampliar área" onclick="toggleExpand()">⛶</button>
+        <button class="btn-expand" id="btn-expand" title="Ampliar área" onclick="toggleExpand()"><i class="ph-bold ph-corners-out"></i></button>
         <!-- capa 1: guía con la letra en punteado -->
         <canvas id="guideCanvas"></canvas>
         <!-- capa 2: animación de demostración -->
@@ -57,10 +58,10 @@
     <div class="instruction" id="instruction">Primero mira cómo se hace</div>
 
     <div class="controls">
-        <button id="btn-demo"  onclick="playDemo()">▶ Ver cómo</button>
-        <button id="btn-speak" onclick="replaySpeech()">🔊 Escuchar</button>
-        <button id="btn-clear" onclick="clearTrace()">🗑 Borrar</button>
-        <button id="btn-next2" onclick="nextLetter()">Siguiente →</button>
+        <button id="btn-demo"  onclick="playDemo()"><i class="ph-bold ph-play"></i> Ver cómo</button>
+        <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> Escuchar</button>
+        <button id="btn-clear" onclick="clearTrace()"><i class="ph-bold ph-trash"></i> Borrar</button>
+        <button id="btn-next2" onclick="nextLetter()">Siguiente <i class="ph-bold ph-arrow-right"></i></button>
     </div>
 
     <div class="stroke-progress" id="strokeProgress"></div>

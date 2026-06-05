@@ -157,13 +157,12 @@ async function recognizeDrawing() {
         return;
     }
 
-    // 1. Motor Primario: Google API
     var googleResult = await askGoogleAPI(strokes, canvas.width, canvas.height);
     if (googleResult) {
         busy = false;
         output.textContent = googleResult;
         output.classList.remove('empty');
-        setStatus('¡Lo adiviné! 🎉 — (Google API)', 'success');
+        setStatus('¡Lo adiviné! <i class="ph-bold ph-confetti"></i> — (Google API)', 'success');
         speakText(googleResult);
         return;
     }
@@ -189,7 +188,7 @@ async function recognizeDrawing() {
         if (hfResult) {
             output.textContent = hfResult;
             output.classList.remove('empty');
-            setStatus('¡Lo adiviné! 🎉 — (Usando offline modo)', 'success');
+            setStatus('¡Lo adiviné! <i class="ph-bold ph-confetti"></i> — (Usando offline modo)', 'success');
             speakText(hfResult);
         } else {
             setStatus('No pude leerlo. ¡Intenta de nuevo!', 'error');
@@ -222,10 +221,10 @@ function toggleExpand() {
     document.body.classList.toggle('expanded-mode');
     const btn = document.getElementById('btn-expand');
     if (document.body.classList.contains('expanded-mode')) {
-        btn.textContent = '⛶'; // Puedes cambiar el icono si deseas
+        btn.innerHTML = '<i class="ph-bold ph-corners-in"></i>'; 
         btn.title = 'Contraer área';
     } else {
-        btn.textContent = '⛶';
+        btn.innerHTML = '<i class="ph-bold ph-corners-out"></i>';
         btn.title = 'Ampliar área';
     }
     // Forzar redimensionado del canvas
