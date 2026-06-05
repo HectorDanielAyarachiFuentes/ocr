@@ -16,6 +16,9 @@ window.addEventListener('DOMContentLoaded', function() {
             // Reajustar canvases de learn
             if (window.learnContext && window.learnContext.resizeCanvases) {
                 window.learnContext.resizeCanvases();
+                if (window.learnContext.onEnterView) {
+                    window.learnContext.onEnterView();
+                }
             }
         } else {
             viewLearn.classList.remove('active');

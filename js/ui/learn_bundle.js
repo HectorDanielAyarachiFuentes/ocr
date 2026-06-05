@@ -510,7 +510,7 @@ window.learnContext = (function() {
         window.speechSynthesis.speak(mensaje);
     }
 
-    function loadLetter() {
+    function loadLetter(autoPlay) {
         stopDemo();
         if (dCtx) {
             dCtx.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
@@ -531,10 +531,12 @@ window.learnContext = (function() {
         drawGuide();
         
         if (letterTimer) clearTimeout(letterTimer);
-        letterTimer = setTimeout(function() {
-            speakChar(char);
-            playDemo();
-        }, 400);
+        if (autoPlay !== false) {
+            letterTimer = setTimeout(function() {
+                speakChar(char);
+                playDemo();
+            }, 400);
+        }
     }
 
     function nextLetter() {
@@ -557,6 +559,17 @@ window.learnContext = (function() {
         loadLetter();
     }
 
+    function onEnterView() {
+        if (!letterCompleted && !hasDrawn && !demoPlaying) {
+            var char = currentLetterChar();
+            if (letterTimer) clearTimeout(letterTimer);
+            letterTimer = setTimeout(function() {
+                speakChar(char);
+                playDemo();
+            }, 400);
+        }
+    }
+
     function toggleExpand() {
         document.body.classList.toggle('expanded-mode');
         const btn = document.getElementById('btn-expand-learn');
@@ -573,7 +586,9 @@ window.learnContext = (function() {
     // Inicialización si los canvas existen
     if (guideCanvas) {
         resizeCanvases();
-        loadLetter();
+        var viewLearn = document.getElementById('view-learn');
+        var isLearnActive = viewLearn && viewLearn.classList.contains('active');
+        loadLetter(isLearnActive);
     }
 
     return {
@@ -584,6 +599,7 @@ window.learnContext = (function() {
         nextLetter: nextLetter,
         replaySpeech: function() { speakChar(currentLetterChar()); },
         toggleExpand: toggleExpand,
-        resizeCanvases: resizeCanvases
+        resizeCanvases: resizeCanvases,
+        onEnterView: onEnterView
     };
 })();
