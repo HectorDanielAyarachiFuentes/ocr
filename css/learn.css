@@ -87,8 +87,8 @@ body.dark-mode {
 
 /* ── Top Bar ── */
 .top-bar {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     width: 100%;
     padding: 8px 16px;
@@ -97,6 +97,9 @@ body.dark-mode {
     flex-shrink: 0;
     box-shadow: var(--shadow-sm);
 }
+.top-left { justify-self: start; }
+.top-center { justify-self: center; }
+.top-right { justify-self: end; }
 
 .back-btn {
     display: flex;
@@ -121,7 +124,8 @@ body.dark-mode {
     transform: translateY(2px);
     box-shadow: 0 2px 0 var(--border-color);
 }
-.back-btn .icon { font-size: 1.2rem; line-height: 1; }
+.back-btn .icon { font-size: 1.2rem;    letter-spacing: -0.02em;
+}
 
 .app-logo {
     font-size: 1.2rem;
@@ -475,14 +479,74 @@ body.expanded-mode .canvas-area { max-width: 100%; flex: 1; border-width: 6px; }
 }
 
 /* ── Mobile Responsive Tweaks ── */
-@media (max-width: 480px) {
-    header { padding: 6px 0; justify-content: center; gap: 8px; flex-wrap: wrap; }
-    .header-center { position: static; transform: none; order: -1; width: 100%; margin-bottom: 4px; }
-    h1 { width: 100%; text-align: center; }
+.mobile-only { display: none !important; }
+.btn-clear-floating { display: none; }
+
+@media (max-width: 767px) {
+    .desktop-only { display: none !important; }
+    .mobile-only { display: flex !important; }
     
-    .back-btn, .case-toggle { margin: 0 2px; }
-    .controls { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .controls button { padding: 14px 6px; font-size: 0.95rem; }
-    .letter-nav { gap: 16px; }
-    .letter-nav button { width: 48px; height: 48px; font-size: 1.6rem; }
+    .top-bar { padding: 8px 10px; }
+    .back-btn .text { display: none; } /* Solo el icono < */
+    .theme-toggle { width: 36px; height: 36px; font-size: 1.2rem; }
+    
+    .app-layout { padding: 6px; gap: 6px; }
+    .sidebar { gap: 6px; }
+    
+    /* Row 2: Nav + Score + Speak */
+    .nav-score-row { 
+        display: flex; 
+        align-items: center; 
+        justify-content: space-between; 
+        width: 100%; 
+        padding: 0 4px;
+    }
+    .stars-counter { margin: 0; padding: 6px 10px; font-size: 1rem; }
+    
+    .letter-nav { gap: 8px; }
+    .letter-nav button { width: 44px; height: 44px; font-size: 1.5rem; }
+    .current-letter { min-width: 54px; height: 54px; font-size: 2.2rem; border-width: 2px; }
+    
+    .btn-speak-mobile {
+        width: 44px; height: 44px; 
+        border-radius: var(--radius-sm); 
+        background: var(--info-color); 
+        color: white; 
+        border: none; 
+        align-items: center; justify-content: center; 
+        font-size: 1.5rem; 
+        box-shadow: 0 4px 0 var(--info-shadow);
+    }
+    .btn-speak-mobile:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--info-shadow); }
+    
+    .instruction { display: none; } /* Ocultar texto "Primero mira..." */
+    #btn-speak { display: none; } /* Ocultar botón grande de escuchar */
+    #btn-clear { display: none; } /* Ocultar botón grande de borrar */
+    
+    /* Row 3: Action buttons (Solo 2 restantes) */
+    .controls-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .controls-grid button { padding: 10px 4px; font-size: 1.1rem; }
+    
+    .canvas-area { border-width: 2px; border-radius: var(--radius-sm); position: relative; }
+    
+    /* Floating Clear Button dentro del canvas */
+    .btn-clear-floating {
+        display: flex;
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        width: 44px;
+        height: 44px;
+        background: var(--danger-color);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.5rem;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        box-shadow: 0 4px 0 var(--danger-shadow);
+    }
+    .btn-clear-floating:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--danger-shadow); }
 }

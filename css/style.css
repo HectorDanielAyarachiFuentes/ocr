@@ -466,3 +466,45 @@ button:active {
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* ── Simplificación para Móviles ── */
+.mobile-only { display: none !important; }
+
+@media (max-width: 767px) {
+    .desktop-only { display: none !important; }
+    .mobile-only { display: flex !important; }
+    h1.mobile-only { display: block !important; margin: 0; font-size: 1.4rem; color: var(--primary-shadow); }
+    a.mobile-only { display: inline-flex !important; }
+    
+    .top-bar { padding: 8px 12px; justify-content: space-between; }
+    .learn-link.nav-btn-sm { padding: 6px 12px; font-size: 0.9rem; margin: 0; box-shadow: 0 3px 0 var(--success-shadow); }
+    
+    .app-layout { padding: 6px; gap: 6px; }
+    .sidebar { gap: 6px; }
+    .sidebar header { display: none; } /* Ocultar el encabezado grande */
+    
+    /* Result y Controles fusionados en 1 sola fila */
+    .result-and-controls { 
+        display: flex; 
+        align-items: stretch; 
+        gap: 8px; 
+        width: 100%; 
+    }
+    .result-area { flex: 1; padding: 2px 8px; min-height: 48px; margin: 0; border-width: 2px; }
+    .result-label { display: none; } /* Ocultar texto "Resultado:" */
+    #output { font-size: 2.2rem; }
+    
+    /* Botones cuadrados pequeños */
+    .controls { flex-direction: row; width: auto; gap: 6px; padding: 0; flex-shrink: 0; align-items: stretch; }
+    .controls button { 
+        padding: 0; width: 48px; height: auto; 
+        display: flex; align-items: center; justify-content: center; 
+        font-size: 1.5rem; flex: 0 0 auto; 
+        border-radius: var(--radius-sm); border-width: 2px; 
+    }
+    .controls button .text { display: none; } /* Solo iconos */
+    
+    .theme-toggle { width: 36px; height: 36px; font-size: 1.2rem; }
+    .canvas-wrapper { border-width: 2px; border-radius: var(--radius-sm); }
+    .status-bar { font-size: 0.8rem; }
+}

@@ -24,16 +24,19 @@
 </head>
 <body>
     <div class="top-bar">
-        <a href="./index.html" class="back-btn">
-            <span class="icon"><i class="ph-bold ph-caret-left"></i></span>
-            <span class="text">Volver</span>
-        </a>
-        <div class="app-logo"><i class="ph-bold ph-pencil"></i> Aprende</div>
-        <div class="header-right">
+        <div class="top-left">
+            <a href="./index.html" class="back-btn">
+                <span class="icon"><i class="ph-bold ph-caret-left"></i></span>
+                <span class="text">Volver</span>
+            </a>
+        </div>
+        <div class="top-center">
             <div class="case-toggle">
                 <button id="btn-upper" class="active" onclick="setCase('upper')">ABC</button>
                 <button id="btn-lower" onclick="setCase('lower')">abc</button>
             </div>
+        </div>
+        <div class="top-right">
             <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
                 <i class="ph-fill ph-moon"></i>
             </button>
@@ -42,23 +45,28 @@
 
     <div class="app-layout">
         <aside class="sidebar">
-            <div class="stars-container" style="display: flex; justify-content: center; width: 100%;">
-                <div class="stars-counter" id="starsCounter"><i class="ph-fill ph-star"></i> 0</div>
+            
+            <div class="nav-score-row">
+                <div class="stars-counter" id="starsCounter">
+                    <i class="ph-fill ph-star"></i> <span id="score">0</span>
+                </div>
+        
+                <div class="letter-nav">
+                    <button onclick="prevLetter()"><i class="ph-bold ph-caret-left"></i></button>
+                    <div class="current-letter" id="currentLetter">A</div>
+                    <button onclick="nextLetter()"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
+
+                <button class="mobile-only btn-speak-mobile" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i></button>
             </div>
 
-            <div class="letter-nav">
-                <button id="btn-prev" onclick="prevLetter()"><i class="ph-bold ph-caret-left"></i></button>
-                <div class="current-letter" id="currentLetter">A</div>
-                <button id="btn-next" onclick="nextLetter()"><i class="ph-bold ph-caret-right"></i></button>
-            </div>
-        
             <div class="instruction" id="instruction">Primero mira cómo se hace</div>
         
             <div class="controls-grid">
-                <button id="btn-demo"  onclick="playDemo()"><i class="ph-bold ph-play"></i> Ver cómo</button>
-                <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> Escuchar</button>
-                <button id="btn-clear" onclick="clearTrace()"><i class="ph-bold ph-trash"></i> Borrar</button>
-                <button id="btn-next2" onclick="nextLetter()">Siguiente <i class="ph-bold ph-arrow-right"></i></button>
+                <button id="btn-demo"  onclick="playDemo()"><i class="ph-bold ph-play"></i> <span class="btn-text">Ver cómo</span></button>
+                <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> <span class="btn-text">Escuchar</span></button>
+                <button id="btn-clear" onclick="clearTrace()"><i class="ph-bold ph-trash"></i> <span class="btn-text">Borrar</span></button>
+                <button id="btn-next2" onclick="nextLetter()"><span class="btn-text">Siguiente</span> <i class="ph-bold ph-arrow-right"></i></button>
             </div>
         
             <div class="stroke-progress" id="strokeProgress"></div>

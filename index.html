@@ -35,10 +35,20 @@
 
 <body>
     <div class="top-bar">
-        <div class="app-logo"><i class="ph-bold ph-magic-wand"></i> Dibuja y Adivina</div>
-        <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
-            <i class="ph-fill ph-moon"></i>
-        </button>
+        <div class="top-left">
+            <div class="app-logo desktop-only"><i class="ph-bold ph-magic-wand"></i> Dibuja y Adivina</div>
+            <h1 class="mobile-only"><i class="ph-bold ph-pencil"></i> ¡Dibuja!</h1>
+        </div>
+        <div class="top-center mobile-only">
+            <a href="./learn.html" class="learn-link nav-btn-sm">
+                <i class="ph-bold ph-book-open-text"></i> Aprender
+            </a>
+        </div>
+        <div class="top-right">
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Cambiar tema">
+                <i class="ph-fill ph-moon"></i>
+            </button>
+        </div>
     </div>
 
     <div class="app-layout">
@@ -54,14 +64,15 @@
                 </div>
             </header>
         
-            <div class="result-area">
-                <span class="result-label">Resultado:</span>
-                <div id="output" class="empty">—</div>
-            </div>
-        
-            <div class="controls">
-                <button id="btn-clear" onclick="clearCanvas()"><i class="ph-bold ph-trash"></i> Borrar</button>
-                <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> Escuchar</button>
+            <div class="result-and-controls">
+                <div class="result-area">
+                    <span class="result-label">Resultado:</span>
+                    <div id="output" class="empty">—</div>
+                </div>
+                <div class="controls">
+                    <button id="btn-clear" onclick="clearCanvas()"><i class="ph-bold ph-trash"></i> <span class="text">Borrar</span></button>
+                    <button id="btn-speak" onclick="replaySpeech()"><i class="ph-bold ph-speaker-high"></i> <span class="text">Escuchar</span></button>
+                </div>
             </div>
         
             <div class="status-bar" id="statusBar">Esperando trazo…</div>
